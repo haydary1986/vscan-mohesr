@@ -33,6 +33,10 @@ func NewEngine() *Engine {
 			NewPerformanceScanner(),
 			NewDDoSScanner(),
 			NewCORSScanner(),
+			NewHTTPMethodsScanner(),
+			NewDNSScanner(),
+			NewMixedContentScanner(),
+			NewInfoDisclosureScanner(),
 		},
 	}
 }

@@ -7,7 +7,7 @@ COPY frontend/ .
 RUN npm run build
 
 # Stage 2: Build Go backend
-FROM golang:1.23-alpine AS backend-builder
+FROM golang:1.25-alpine AS backend-builder
 RUN apk add --no-cache gcc musl-dev
 WORKDIR /app/backend
 COPY backend/go.mod backend/go.sum ./
@@ -27,8 +27,10 @@ COPY --from=backend-builder /app/backend/vscan-server .
 # Copy Vue.js build output
 COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
 
+# Persistent data directory for SQLite database
+RUN mkdir -p /app/data /run/nginx
+
 # Nginx config
-RUN mkdir -p /run/nginx
 COPY <<'NGINX' /etc/nginx/http.d/default.conf
 server {
     listen 80;
@@ -56,13 +58,16 @@ server {
 }
 NGINX
 
-# Start script - run both backend and nginx
+# Start script - database stored in /app/data volume for persistence
 COPY <<'SCRIPT' /app/start.sh
 #!/bin/sh
-./vscan-server &
+DB_PATH=/app/data/vscan.db ./vscan-server &
 nginx -g "daemon off;"
 SCRIPT
 RUN chmod +x /app/start.sh
+
+# Volume for persistent data (survives redeployments)
+VOLUME ["/app/data"]
 
 EXPOSE 80
 

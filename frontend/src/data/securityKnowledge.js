@@ -53,6 +53,30 @@ export const categoryInfo = {
     importance: 'high',
     attackScenario: 'If CORS allows all origins (*) with credentials, an attacker can create a malicious website that makes requests to the vulnerable site using the victim\'s session cookies, stealing sensitive data or performing actions on their behalf (similar to CSRF attacks).',
   },
+  http_methods: {
+    title: 'HTTP Methods Security',
+    description: 'HTTP methods like TRACE, DELETE, PUT should be disabled on production servers. Leaving dangerous methods enabled allows attackers to manipulate server resources.',
+    importance: 'high',
+    attackScenario: 'An attacker uses the TRACE method to perform Cross-Site Tracing (XST) attacks, stealing HTTP-only cookies. The PUT method can be used to upload malicious files directly to the server.',
+  },
+  dns: {
+    title: 'DNS Security (SPF, DMARC, CAA)',
+    description: 'DNS security records (SPF, DMARC, CAA) protect the domain from email spoofing and unauthorized certificate issuance.',
+    importance: 'high',
+    attackScenario: 'Without SPF/DMARC, an attacker sends phishing emails that appear to come from your domain (e.g., admin@youruniversity.edu.iq), tricking students and staff into revealing credentials or downloading malware.',
+  },
+  mixed_content: {
+    title: 'Mixed Content',
+    description: 'Mixed content occurs when an HTTPS page loads resources (scripts, images, forms) over insecure HTTP. This breaks the security guarantee of HTTPS.',
+    importance: 'high',
+    attackScenario: 'An attacker intercepts the HTTP-loaded script on the HTTPS page, injects malicious code that steals login credentials or redirects users to a phishing site. The user sees the padlock icon and trusts the page.',
+  },
+  info_disclosure: {
+    title: 'Information Disclosure',
+    description: 'Information disclosure occurs when the server reveals internal details like technology versions, file paths, error messages, or debug information that help attackers plan targeted attacks.',
+    importance: 'medium',
+    attackScenario: 'Error pages revealing "PHP 7.2.1" and "/var/www/html" paths allow attackers to search for specific CVEs for that PHP version and target the exact file system structure.',
+  },
 }
 
 export const checkExplanations = {

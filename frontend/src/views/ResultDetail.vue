@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getScanResult } from '../api'
+import { getScanResult, analyzeResult, getAIAnalysis } from '../api'
 import { categoryInfo, getCheckExplanation } from '../data/securityKnowledge'
 import { Radar } from 'vue-chartjs'
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip } from 'chart.js'
@@ -14,6 +14,9 @@ const result = ref(null)
 const categories = ref({})
 const loading = ref(true)
 const activeCategory = ref(null)
+const aiAnalysis = ref(null)
+const aiLoading = ref(false)
+const showAI = ref(false)
 
 const categoryLabels = {
   ssl: 'SSL/TLS',
@@ -24,6 +27,10 @@ const categoryLabels = {
   performance: 'Performance',
   ddos: 'DDoS Protection',
   cors: 'CORS',
+  http_methods: 'HTTP Methods',
+  dns: 'DNS Security',
+  mixed_content: 'Mixed Content',
+  info_disclosure: 'Information Disclosure',
 }
 
 const categoryIcons = {
@@ -116,6 +123,27 @@ function getScoreBg(score) {
   return 'bg-red-500'
 }
 
+async function runAIAnalysis() {
+  aiLoading.value = true
+  showAI.value = true
+  try {
+    const { data } = await analyzeResult(route.params.id)
+    aiAnalysis.value = data
+  } catch (e) {
+    alert(e.response?.data?.error || 'AI analysis failed')
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+async function loadExistingAnalysis() {
+  try {
+    const { data } = await getAIAnalysis(route.params.id)
+    aiAnalysis.value = data
+    showAI.value = true
+  } catch { /* no existing analysis */ }
+}
+
 onMounted(async () => {
   try {
     const { data } = await getScanResult(route.params.id)
@@ -123,6 +151,7 @@ onMounted(async () => {
     categories.value = data.categories
     const cats = Object.keys(data.categories)
     if (cats.length) activeCategory.value = cats[0]
+    await loadExistingAnalysis()
   } catch (e) {
     console.error('Failed to load result:', e)
   } finally {
@@ -160,6 +189,37 @@ onMounted(async () => {
             </div>
             <p class="text-sm text-gray-500 mt-2">Overall Score</p>
           </div>
+          <div class="mt-4 flex gap-2">
+            <button @click="runAIAnalysis" :disabled="aiLoading"
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+              </svg>
+              {{ aiLoading ? 'Analyzing...' : 'AI Analysis' }}
+            </button>
+            <button v-if="aiAnalysis" @click="showAI = !showAI"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">
+              {{ showAI ? 'Hide AI Report' : 'Show AI Report' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Analysis Panel -->
+      <div v-if="showAI" class="bg-white rounded-xl shadow-sm border border-purple-200 p-6 mb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          <h3 class="text-lg font-semibold text-purple-900">AI Security Analysis</h3>
+          <span v-if="aiAnalysis" class="text-xs text-purple-500">({{ aiAnalysis.provider }})</span>
+        </div>
+        <div v-if="aiLoading" class="flex items-center justify-center py-10">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 ml-3"></div>
+          <span class="text-purple-600">AI is analyzing the scan results...</span>
+        </div>
+        <div v-else-if="aiAnalysis?.analysis" class="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap" dir="ltr" style="text-align: left;">
+          {{ aiAnalysis.analysis }}
         </div>
       </div>
 

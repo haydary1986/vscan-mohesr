@@ -232,3 +232,117 @@ func GetScanResult(c *fiber.Ctx) error {
 		"categories": categories,
 	})
 }
+
+// --- Leaderboard: All websites ranked by security score ---
+
+func GetLeaderboard(c *fiber.Ctx) error {
+	type RankedSite struct {
+		ScanTargetID uint    `json:"scan_target_id"`
+		URL          string  `json:"url"`
+		Name         string  `json:"name"`
+		Institution  string  `json:"institution"`
+		LatestScore  float64 `json:"latest_score"`
+		ScanResultID uint    `json:"scan_result_id"`
+		ScannedAt    string  `json:"scanned_at"`
+	}
+
+	var ranked []RankedSite
+	config.DB.Raw(`
+		SELECT sr.scan_target_id, st.url, st.name, st.institution,
+			   sr.overall_score AS latest_score, sr.id AS scan_result_id,
+			   sr.ended_at AS scanned_at
+		FROM scan_results sr
+		INNER JOIN scan_targets st ON st.id = sr.scan_target_id
+		WHERE sr.status = 'completed'
+		AND sr.id = (
+			SELECT sr2.id FROM scan_results sr2
+			WHERE sr2.scan_target_id = sr.scan_target_id AND sr2.status = 'completed'
+			ORDER BY sr2.created_at DESC LIMIT 1
+		)
+		ORDER BY sr.overall_score DESC
+	`).Scan(&ranked)
+
+	// Category breakdown for each site
+	type CategoryScore struct {
+		Category string  `json:"category"`
+		Score    float64 `json:"score"`
+	}
+
+	type RankedSiteWithCategories struct {
+		RankedSite
+		Rank       int             `json:"rank"`
+		Grade      string          `json:"grade"`
+		Categories []CategoryScore `json:"categories"`
+	}
+
+	var result []RankedSiteWithCategories
+	for i, site := range ranked {
+		entry := RankedSiteWithCategories{
+			RankedSite: site,
+			Rank:       i + 1,
+			Grade:      scoreToGrade(site.LatestScore),
+		}
+
+		// Get category scores
+		var checks []models.CheckResult
+		config.DB.Where("scan_result_id = ?", site.ScanResultID).Find(&checks)
+
+		catScores := map[string]struct{ total, weight float64 }{}
+		for _, ch := range checks {
+			cs := catScores[ch.Category]
+			cs.total += ch.Score * ch.Weight
+			cs.weight += ch.Weight
+			catScores[ch.Category] = cs
+		}
+
+		for cat, cs := range catScores {
+			score := 0.0
+			if cs.weight > 0 {
+				score = cs.total / cs.weight
+			}
+			entry.Categories = append(entry.Categories, CategoryScore{
+				Category: cat,
+				Score:    score,
+			})
+		}
+
+		result = append(result, entry)
+	}
+
+	// Summary stats
+	var totalSites int64
+	config.DB.Model(&models.ScanTarget{}).Count(&totalSites)
+
+	var avgScore float64
+	if len(ranked) > 0 {
+		sum := 0.0
+		for _, r := range ranked {
+			sum += r.LatestScore
+		}
+		avgScore = sum / float64(len(ranked))
+	}
+
+	return c.JSON(fiber.Map{
+		"rankings":     result,
+		"total_sites":  totalSites,
+		"scanned_sites": len(ranked),
+		"average_score": avgScore,
+	})
+}
+
+func scoreToGrade(score float64) string {
+	switch {
+	case score >= 90:
+		return "A+"
+	case score >= 80:
+		return "A"
+	case score >= 70:
+		return "B"
+	case score >= 60:
+		return "C"
+	case score >= 50:
+		return "D"
+	default:
+		return "F"
+	}
+}

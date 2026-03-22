@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -28,6 +29,9 @@ func InitDatabase() {
 	}
 
 	err = DB.AutoMigrate(
+		&models.User{},
+		&models.Settings{},
+		&models.AIAnalysis{},
 		&models.ScanTarget{},
 		&models.ScanJob{},
 		&models.ScanResult{},
@@ -35,6 +39,23 @@ func InitDatabase() {
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
+	}
+
+	// Create default admin if no users exist
+	var userCount int64
+	DB.Model(&models.User{}).Count(&userCount)
+	if userCount == 0 {
+		hashed, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+		admin := models.User{
+			Username: "admin",
+			Password: string(hashed),
+			FullName: "System Administrator",
+			Email:    "admin@mohesr.gov.iq",
+			Role:     "admin",
+			IsActive: true,
+		}
+		DB.Create(&admin)
+		log.Println("Default admin user created (username: admin, password: admin123)")
 	}
 
 	log.Println("Database initialized successfully")

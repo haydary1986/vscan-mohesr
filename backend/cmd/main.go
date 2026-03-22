@@ -13,6 +13,9 @@ func main() {
 	// Initialize database
 	config.InitDatabase()
 
+	// Seed universities from MOHESR list
+	config.SeedUniversities()
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName: "VScan-MOHESR v1.0",
