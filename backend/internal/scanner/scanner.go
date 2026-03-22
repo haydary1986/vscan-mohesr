@@ -41,6 +41,9 @@ func NewEngine() *Engine {
 			NewDNSScanner(),
 			NewMixedContentScanner(),
 			NewInfoDisclosureScanner(),
+			NewContentScanner(),
+			NewHostingScanner(),
+			NewAdvancedSecurityScanner(),
 		},
 	}
 }

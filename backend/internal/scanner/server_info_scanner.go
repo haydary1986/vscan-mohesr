@@ -73,12 +73,23 @@ func (s *ServerInfoScanner) checkServerHeader(resp *http.Response) models.CheckR
 		check.Severity = "info"
 		check.Details = toJSON(map[string]string{"message": "Server header is not exposed"})
 	} else {
-		// Server header is exposed; severity depends on how detailed it is
 		lower := strings.ToLower(server)
 		hasVersion := strings.ContainsAny(server, "0123456789./")
 
-		if hasVersion {
-			// Exposes server name AND version - more dangerous
+		// CDN/WAF proxy names are acceptable (cloudflare, fastly, etc.)
+		isCDNProxy := lower == "cloudflare" || lower == "fastly" || lower == "akamaighost" ||
+			strings.Contains(lower, "cdn") || strings.Contains(lower, "varnish")
+
+		if isCDNProxy {
+			// CDN/WAF proxy name - this is acceptable and even indicates protection
+			check.Status = "pass"
+			check.Score = 900
+			check.Severity = "info"
+			check.Details = toJSON(map[string]string{
+				"message": "Server header shows CDN/WAF proxy (origin server is hidden)",
+				"server":  server,
+			})
+		} else if hasVersion {
 			check.Status = "fail"
 			check.Score = 250
 			check.Severity = "high"
@@ -86,8 +97,7 @@ func (s *ServerInfoScanner) checkServerHeader(resp *http.Response) models.CheckR
 				"message": "Server header exposes software name and version",
 				"server":  server,
 			})
-		} else if strings.Contains(lower, "apache") || strings.Contains(lower, "nginx") || strings.Contains(lower, "iis") {
-			// Exposes known server name but no version
+		} else if strings.Contains(lower, "apache") || strings.Contains(lower, "nginx") || strings.Contains(lower, "iis") || strings.Contains(lower, "litespeed") {
 			check.Status = "warn"
 			check.Score = 450
 			check.Severity = "medium"
@@ -96,10 +106,9 @@ func (s *ServerInfoScanner) checkServerHeader(resp *http.Response) models.CheckR
 				"server":  server,
 			})
 		} else {
-			// Generic or obscured server name
 			check.Status = "warn"
-			check.Score = 550
-			check.Severity = "medium"
+			check.Score = 650
+			check.Severity = "low"
 			check.Details = toJSON(map[string]string{
 				"message": "Server header is present with generic value",
 				"server":  server,

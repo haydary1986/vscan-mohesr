@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دليل الحصول على 1000/1000 - جامعة التراث</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4f46e5;--primary-light:#e0e7ff;--green:#059669;--green-light:#d1fae5;--red:#dc2626;--red-light:#fee2e2;--orange:#d97706;--orange-light:#fef3c7;--gray:#6b7280;--gray-light:#f9fafb;--border:#e5e7eb;--text:#111827;--text-light:#6b7280}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f8fafc;color:var(--text);line-height:1.7}
+a{color:var(--primary);text-decoration:none}
+
+.container{max-width:900px;margin:0 auto;padding:0 24px}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,#312e81,#4f46e5,#2563eb);color:#fff;padding:60px 0 50px;text-align:center}
+.hero h1{font-size:2.2em;margin-bottom:12px;font-weight:800}
+.hero .subtitle{font-size:1.15em;opacity:.85;margin-bottom:28px}
+.score-box{display:inline-flex;align-items:center;gap:16px;background:rgba(255,255,255,.12);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:16px 32px}
+.score-box .current{font-size:2.8em;font-weight:900;color:#fbbf24}
+.score-box .arrow{font-size:2em;opacity:.6}
+.score-box .target{font-size:2.8em;font-weight:900;color:#34d399}
+.score-box span.label{font-size:.75em;opacity:.7;display:block}
+
+/* Summary Table */
+.summary-section{background:#fff;border-radius:16px;border:1px solid var(--border);margin:-30px 24px 32px;position:relative;z-index:2;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.summary-section h2{padding:20px 24px;background:var(--gray-light);border-bottom:1px solid var(--border);font-size:1.1em;display:flex;align-items:center;gap:8px}
+.summary-table{width:100%;border-collapse:collapse;font-size:.9em}
+.summary-table th{background:#f1f5f9;padding:10px 16px;text-align:right;font-weight:600;color:var(--text-light);border-bottom:1px solid var(--border)}
+.summary-table td{padding:10px 16px;border-bottom:1px solid #f1f5f9}
+.summary-table tr:hover{background:#fafbfe}
+.score-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.8em;font-weight:700}
+.score-bad{background:var(--red-light);color:var(--red)}
+.score-warn{background:var(--orange-light);color:var(--orange)}
+.score-good{background:var(--green-light);color:var(--green)}
+.impact{font-weight:700;color:var(--primary)}
+
+/* Phase Sections */
+.phase{background:#fff;border-radius:16px;border:1px solid var(--border);margin:0 0 28px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.phase-header{padding:20px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.phase-num{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3em;font-weight:900;color:#fff;flex-shrink:0}
+.phase-1 .phase-num{background:linear-gradient(135deg,#f97316,#ea580c)}
+.phase-2 .phase-num{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
+.phase-3 .phase-num{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+.phase-4 .phase-num{background:linear-gradient(135deg,#059669,#047857)}
+.phase-header h2{font-size:1.2em;margin:0}
+.phase-header .time{margin-right:auto;font-size:.85em;color:var(--text-light);background:var(--gray-light);padding:4px 12px;border-radius:20px}
+
+.phase-body{padding:24px}
+
+/* Steps */
+.step{margin-bottom:32px;border-right:3px solid var(--primary-light);padding-right:20px}
+.step:last-child{margin-bottom:0}
+.step-title{font-size:1.05em;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.step-title .tag-problem{background:var(--red-light);color:var(--red);font-size:.75em;padding:2px 10px;border-radius:20px;font-weight:600}
+.step-title .tag-impact{background:var(--green-light);color:var(--green);font-size:.75em;padding:2px 10px;border-radius:20px;font-weight:600}
+.step p{color:var(--text-light);margin-bottom:8px;font-size:.92em}
+.step ol,.step ul{padding-right:20px;margin:8px 0;color:var(--text-light);font-size:.92em}
+.step li{margin-bottom:6px}
+
+/* Code Block */
+.code-block{background:#1e293b;color:#e2e8f0;border-radius:10px;padding:16px 20px;margin:12px 0;overflow-x:auto;font-family:'Cascadia Code','Fira Code',monospace;font-size:.85em;line-height:1.8;direction:ltr;text-align:left}
+.code-block .comment{color:#64748b}
+.code-block .keyword{color:#93c5fd}
+.code-block .string{color:#86efac}
+.code-block .important{color:#fbbf24}
+
+/* Settings Table */
+.settings-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.88em;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.settings-table th{background:#f1f5f9;padding:8px 14px;text-align:right;font-weight:600}
+.settings-table td{padding:8px 14px;border-top:1px solid #f1f5f9}
+.settings-table td:first-child{font-family:monospace;direction:ltr;text-align:left;font-size:.85em;color:var(--primary)}
+
+/* Warning Box */
+.warning{background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin:12px 0;font-size:.9em;display:flex;gap:10px;align-items:flex-start}
+.warning::before{content:"⚠️";font-size:1.2em;flex-shrink:0}
+
+.info{background:#e0e7ff;border:1px solid #c7d2fe;border-radius:10px;padding:14px 18px;margin:12px 0;font-size:.9em;display:flex;gap:10px;align-items:flex-start}
+.info::before{content:"💡";font-size:1.2em;flex-shrink:0}
+
+/* Checklist */
+.checklist{margin:16px 0;list-style:none;padding:0}
+.checklist li{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:.9em;display:flex;align-items:center;gap:10px;background:#fff}
+.checklist li::before{content:"☐";font-size:1.2em;flex-shrink:0}
+.checklist li.done::before{content:"✅"}
+
+/* Result Table */
+.result-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.88em}
+.result-table th{background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff;padding:10px 14px;text-align:right}
+.result-table td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.result-table tr:nth-child(even){background:#f8fafc}
+.result-table .score-before{color:var(--red);font-weight:700}
+.result-table .score-after{color:var(--green);font-weight:700}
+
+/* Footer */
+.footer{text-align:center;padding:40px 0;color:var(--text-light);font-size:.85em}
+.footer a{color:var(--primary)}
+
+/* Print */
+@media print{
+  body{background:#fff}
+  .hero{padding:30px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .phase,.summary-section{break-inside:avoid;box-shadow:none}
+  .code-block{background:#f1f5f9!important;color:#1e293b!important;border:1px solid #ddd}
+}
+
+/* Mobile */
+@media(max-width:640px){
+  .hero h1{font-size:1.6em}
+  .score-box{flex-direction:column;gap:8px;padding:14px 20px}
+  .score-box .current,.score-box .target{font-size:2em}
+  .phase-header{flex-wrap:wrap}
+  .summary-table{font-size:.8em}
+  .settings-table{font-size:.8em}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="container">
+    <h1>🛡️ دليل الحصول على الدرجة الكاملة</h1>
+    <p class="subtitle">جامعة التراث — uoturath.edu.iq</p>
+    <div class="score-box">
+      <div>
+        <span class="label">الدرجة الحالية</span>
+        <span class="current">893</span>
+      </div>
+      <span class="arrow">←</span>
+      <div>
+        <span class="label">الهدف</span>
+        <span class="target">1000</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="container">
+<div class="summary-section">
+  <h2>📋 ملخص المشاكل المكتشفة (مرتبة حسب التأثير)</h2>
+  <table class="summary-table">
+    <thead>
+      <tr><th>#</th><th>المشكلة</th><th>الدرجة الحالية</th><th>الهدف</th><th>التأثير</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>HSTS max-age = 0 (معطّل فعلياً)</td><td><span class="score-badge score-bad">100</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+45 نقطة</td></tr>
+      <tr><td>2</td><td>HTTP Methods خطرة مفتوحة (TRACE, DELETE, PUT, PATCH)</td><td><span class="score-badge score-bad">75</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+30 نقطة</td></tr>
+      <tr><td>3</td><td>DMARC مفقود — البريد قابل للانتحال</td><td><span class="score-badge score-bad">0</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+12 نقطة</td></tr>
+      <tr><td>4</td><td>Permissions-Policy مفقود</td><td><span class="score-badge score-bad">0</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+9 نقاط</td></tr>
+      <tr><td>5</td><td>لوحة /admin/ مكشوفة للعامة</td><td><span class="score-badge score-bad">125</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+7 نقاط</td></tr>
+      <tr><td>6</td><td>Rate Limiting غير مفعل</td><td><span class="score-badge score-warn">250</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+5 نقاط</td></tr>
+      <tr><td>7</td><td>ملفات حساسة ترجع 403 بدل 404</td><td><span class="score-badge score-warn">725</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+3 نقاط</td></tr>
+      <tr><td>8</td><td>WordPress مكشوف</td><td><span class="score-badge score-warn">550</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+3 نقاط</td></tr>
+      <tr><td>9</td><td>Server header يكشف معلومات السيرفر</td><td><span class="score-badge score-warn">550</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+3 نقاط</td></tr>
+      <tr><td>10</td><td>إصدارات تقنيات مكشوفة في الصفحة</td><td><span class="score-badge score-warn">425</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+2 نقطة</td></tr>
+      <tr><td>11</td><td>SPF يستخدم ~all بدل -all</td><td><span class="score-badge score-warn">725</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+2 نقطة</td></tr>
+      <tr><td>12</td><td>شهادة SSL تنتهي خلال 54 يوم</td><td><span class="score-badge score-warn">750</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+2 نقطة</td></tr>
+      <tr><td>13</td><td>CAA record مفقود</td><td><span class="score-badge score-warn">675</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+1 نقطة</td></tr>
+      <tr><td>14</td><td>DNSSEC غير مفعل</td><td><span class="score-badge score-warn">650</span></td><td><span class="score-badge score-good">1000</span></td><td class="impact">+1 نقطة</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<!-- Phase 1 -->
+<div class="container">
+<div class="phase phase-1">
+  <div class="phase-header">
+    <div class="phase-num">1</div>
+    <h2>إعدادات Cloudflare</h2>
+    <span class="time">⏱ 15 دقيقة</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- 1.1 HSTS -->
+    <div class="step">
+      <div class="step-title">
+        1.1 تفعيل HSTS بشكل صحيح
+        <span class="tag-problem">100/1000</span>
+        <span class="tag-impact">+45 نقطة</span>
+      </div>
+      <p><strong>المشكلة:</strong> ترويسة HSTS موجودة لكن <code>max-age = 0</code> مما يعني أنها معطّلة فعلياً.</p>
+      <ol>
+        <li>سجّل الدخول إلى <strong>Cloudflare Dashboard</strong></li>
+        <li>اختر الموقع <code>uoturath.edu.iq</code></li>
+        <li>اذهب إلى <strong>SSL/TLS</strong> ← <strong>Edge Certificates</strong></li>
+        <li>فعّل <strong>Always Use HTTPS</strong> = ON</li>
+        <li>فعّل <strong>HTTP Strict Transport Security (HSTS)</strong> بالإعدادات التالية:</li>
+      </ol>
+      <table class="settings-table">
+        <tr><th>الإعداد</th><th>القيمة</th></tr>
+        <tr><td>Enable HSTS</td><td><strong>ON</strong></td></tr>
+        <tr><td>Max Age Header</td><td><strong>12 months (31536000)</strong></td></tr>
+        <tr><td>Include subdomains</td><td><strong>ON</strong></td></tr>
+        <tr><td>Preload</td><td><strong>ON</strong></td></tr>
+        <tr><td>No-Sniff Header</td><td><strong>ON</strong></td></tr>
+      </table>
+      <div class="warning">بعد تفعيل HSTS مع preload لا يمكن التراجع بسهولة. تأكد أن HTTPS يعمل على جميع الصفحات والنطاقات الفرعية قبل التفعيل.</div>
+    </div>
+
+    <!-- 1.2 Security Headers -->
+    <div class="step">
+      <div class="step-title">
+        1.2 إضافة ترويسات الأمان
+        <span class="tag-problem">0/1000</span>
+        <span class="tag-impact">+10 نقاط</span>
+      </div>
+      <p><strong>المشكلة:</strong> Permissions-Policy مفقود تماماً، وبعض الترويسات يمكن تحسين قيمها.</p>
+      <ol>
+        <li>في Cloudflare اذهب إلى <strong>Rules</strong> ← <strong>Transform Rules</strong></li>
+        <li>اضغط <strong>Create rule</strong> ← <strong>Modify Response Header</strong></li>
+        <li>اسم القاعدة: <code>Security Headers</code></li>
+        <li>في <strong>When</strong>: اختر <strong>All incoming requests</strong></li>
+        <li>أضف الترويسات التالية (اختر <strong>Set</strong> لكل واحدة):</li>
+      </ol>
+      <table class="settings-table">
+        <tr><th>Header Name</th><th>Value</th></tr>
+        <tr><td>Permissions-Policy</td><td>camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()</td></tr>
+        <tr><td>X-Frame-Options</td><td>DENY</td></tr>
+        <tr><td>Referrer-Policy</td><td>no-referrer</td></tr>
+      </table>
+    </div>
+
+    <!-- 1.3 Rate Limiting -->
+    <div class="step">
+      <div class="step-title">
+        1.3 تفعيل Rate Limiting
+        <span class="tag-problem">250/1000</span>
+        <span class="tag-impact">+5 نقاط</span>
+      </div>
+      <ol>
+        <li>في Cloudflare ← <strong>Security</strong> ← <strong>WAF</strong></li>
+        <li>اضغط <strong>Rate limiting rules</strong> ← <strong>Create rule</strong></li>
+      </ol>
+      <table class="settings-table">
+        <tr><th>الإعداد</th><th>القيمة</th></tr>
+        <tr><td>Rule name</td><td>Rate Limit All</td></tr>
+        <tr><td>When</td><td>URI Path contains <code>/</code></td></tr>
+        <tr><td>Rate</td><td><strong>100 requests per 10 seconds</strong></td></tr>
+        <tr><td>Action</td><td><strong>Block</strong> for 60 seconds</td></tr>
+      </table>
+    </div>
+
+    <!-- 1.4 SSL -->
+    <div class="step">
+      <div class="step-title">
+        1.4 إعدادات SSL/TLS والشهادة
+        <span class="tag-problem">750/1000</span>
+        <span class="tag-impact">+2 نقطة</span>
+      </div>
+      <ol>
+        <li>في <strong>SSL/TLS</strong> ← <strong>Overview</strong>: تأكد الوضع = <strong>Full (strict)</strong></li>
+        <li>في <strong>Edge Certificates</strong>:
+          <ul>
+            <li><strong>Minimum TLS Version</strong> = TLS 1.2</li>
+            <li><strong>TLS 1.3</strong> = ON</li>
+            <li><strong>Automatic HTTPS Rewrites</strong> = ON</li>
+          </ul>
+        </li>
+        <li>في <strong>Origin Server</strong> ← أنشئ <strong>Origin Certificate</strong> (صلاحية 15 سنة) وثبّتها على Plesk</li>
+      </ol>
+      <div class="info">شهادة Cloudflare Origin تحل مشكلة انتهاء الشهادة نهائياً لأن صلاحيتها 15 سنة.</div>
+    </div>
+
+    <!-- 1.5 Server Header -->
+    <div class="step">
+      <div class="step-title">
+        1.5 إخفاء Server Header
+        <span class="tag-problem">550/1000</span>
+        <span class="tag-impact">+3 نقاط</span>
+      </div>
+      <p>في نفس قاعدة <strong>Transform Rules</strong> أعلاه، أضف:</p>
+      <table class="settings-table">
+        <tr><th>Header</th><th>Action</th></tr>
+        <tr><td>Server</td><td><strong>Remove</strong></td></tr>
+      </table>
+    </div>
+
+    <!-- 1.6 DNSSEC -->
+    <div class="step">
+      <div class="step-title">
+        1.6 تفعيل DNSSEC
+        <span class="tag-problem">650/1000</span>
+        <span class="tag-impact">+1 نقطة</span>
+      </div>
+      <ol>
+        <li>في Cloudflare ← <strong>DNS</strong> ← <strong>Settings</strong></li>
+        <li>اضغط <strong>Enable DNSSEC</strong></li>
+        <li>انسخ DS Record الذي يظهر</li>
+        <li>أضفه عند مسجّل النطاق</li>
+      </ol>
+      <div class="warning">DNSSEC يحتاج 24-48 ساعة ليتم تفعيله بالكامل بعد إضافة DS Record عند المسجّل.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Phase 2 -->
+<div class="phase phase-2">
+  <div class="phase-header">
+    <div class="phase-num">2</div>
+    <h2>إعدادات DNS</h2>
+    <span class="time">⏱ 10 دقائق</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- 2.1 DMARC -->
+    <div class="step">
+      <div class="step-title">
+        2.1 إضافة سجل DMARC
+        <span class="tag-problem">0/1000</span>
+        <span class="tag-impact">+12 نقطة</span>
+      </div>
+      <p><strong>المشكلة:</strong> لا يوجد سجل DMARC — أي شخص يمكنه إرسال بريد مزيف باسم الجامعة.</p>
+      <ol>
+        <li>في Cloudflare ← <strong>DNS</strong> ← <strong>Records</strong></li>
+        <li>أضف سجل جديد:</li>
+      </ol>
+      <table class="settings-table">
+        <tr><th>الحقل</th><th>القيمة</th></tr>
+        <tr><td>Type</td><td><strong>TXT</strong></td></tr>
+        <tr><td>Name</td><td><strong>_dmarc</strong></td></tr>
+        <tr><td>Content</td><td>v=DMARC1; p=reject; rua=mailto:dmarc@uoturath.edu.iq; ruf=mailto:dmarc@uoturath.edu.iq; sp=reject; adkim=s; aspf=s</td></tr>
+        <tr><td>TTL</td><td>Auto</td></tr>
+      </table>
+      <div class="info">
+        <code>p=reject</code> = رفض الرسائل المزيفة (الأقوى) &nbsp;|&nbsp;
+        <code>sp=reject</code> = نفس السياسة للنطاقات الفرعية &nbsp;|&nbsp;
+        <code>adkim=s</code> = محاذاة صارمة لـ DKIM
+      </div>
+    </div>
+
+    <!-- 2.2 SPF -->
+    <div class="step">
+      <div class="step-title">
+        2.2 تقوية سجل SPF
+        <span class="tag-problem">725/1000</span>
+        <span class="tag-impact">+2 نقطة</span>
+      </div>
+      <p><strong>المشكلة:</strong> SPF يستخدم <code>~all</code> (soft fail) بدلاً من <code>-all</code> (hard fail).</p>
+      <ol>
+        <li>ابحث عن سجل TXT الذي يبدأ بـ <code>v=spf1</code></li>
+        <li>غيّر <code>~all</code> إلى <code>-all</code></li>
+      </ol>
+      <div class="code-block"><span class="comment">// قبل:</span>
+v=spf1 include:_spf.google.com <span class="important">~all</span>
+
+<span class="comment">// بعد:</span>
+v=spf1 include:_spf.google.com <span class="string">-all</span></div>
+    </div>
+
+    <!-- 2.3 CAA -->
+    <div class="step">
+      <div class="step-title">
+        2.3 إضافة سجلات CAA
+        <span class="tag-problem">675/1000</span>
+        <span class="tag-impact">+1 نقطة</span>
+      </div>
+      <p>يحدد من يحق له إصدار شهادات SSL لنطاقك.</p>
+      <table class="settings-table">
+        <tr><th>Type</th><th>Name</th><th>Tag</th><th>Value</th></tr>
+        <tr><td>CAA</td><td>@</td><td>issue</td><td><strong>letsencrypt.org</strong></td></tr>
+        <tr><td>CAA</td><td>@</td><td>issue</td><td><strong>comodoca.com</strong></td></tr>
+        <tr><td>CAA</td><td>@</td><td>iodef</td><td><strong>mailto:admin@uoturath.edu.iq</strong></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Phase 3 -->
+<div class="phase phase-3">
+  <div class="phase-header">
+    <div class="phase-num">3</div>
+    <h2>إعدادات سيرفر Plesk</h2>
+    <span class="time">⏱ 20 دقيقة</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- 3.1 HTTP Methods -->
+    <div class="step">
+      <div class="step-title">
+        3.1 تعطيل HTTP Methods الخطرة
+        <span class="tag-problem">75/1000</span>
+        <span class="tag-impact">+30 نقطة</span>
+      </div>
+      <p><strong>المشكلة:</strong> طرق TRACE, DELETE, PUT, PATCH كلها مفتوحة مما يسمح بهجمات XST وحذف/تعديل الملفات.</p>
+      <p><strong>الحل — في Plesk:</strong></p>
+      <ol>
+        <li>اذهب إلى <strong>Domains</strong> ← الموقع ← <strong>Apache & nginx Settings</strong></li>
+        <li>في <strong>Additional nginx directives</strong> أضف:</li>
+      </ol>
+      <div class="code-block"><span class="comment"># Block dangerous HTTP methods</span>
+<span class="keyword">if</span> ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$) {
+    <span class="keyword">return</span> <span class="important">444</span>;
+}
+
+<span class="comment"># Hide server tokens</span>
+<span class="keyword">server_tokens</span> off;</div>
+      <p><strong>أو — في ملف .htaccess:</strong></p>
+      <div class="code-block"><span class="comment"># Block dangerous HTTP methods</span>
+<span class="keyword">RewriteEngine</span> On
+<span class="keyword">RewriteCond</span> %{REQUEST_METHOD} ^(<span class="important">TRACE|DELETE|PUT|PATCH|CONNECT</span>) [NC]
+<span class="keyword">RewriteRule</span> .* - [F,L]</div>
+    </div>
+
+    <!-- 3.2 Admin -->
+    <div class="step">
+      <div class="step-title">
+        3.2 حماية لوحة Admin
+        <span class="tag-problem">125/1000</span>
+        <span class="tag-impact">+7 نقاط</span>
+      </div>
+      <p><strong>المشكلة:</strong> مسار <code>/admin/</code> متاح للجميع — يسهّل هجمات brute force.</p>
+      <p>في <code>.htaccess</code> أضف:</p>
+      <div class="code-block"><span class="comment"># Protect admin - return 404 for non-allowed IPs</span>
+<span class="keyword">RewriteEngine</span> On
+<span class="keyword">RewriteCond</span> %{REQUEST_URI} ^/(wp-admin|admin) [NC]
+<span class="keyword">RewriteCond</span> %{REMOTE_ADDR} !^<span class="important">YOUR.OFFICE.IP.HERE</span>$
+<span class="keyword">RewriteCond</span> %{REQUEST_URI} !^/wp-admin/admin-ajax\.php [NC]
+<span class="keyword">RewriteRule</span> .* - [R=404,L]</div>
+      <div class="info">استبدل <code>YOUR.OFFICE.IP.HERE</code> بعنوان IP مكتبك. يمكنك إضافة أكثر من IP بنسخ سطر RewriteCond.</div>
+    </div>
+
+    <!-- 3.3 Sensitive Files -->
+    <div class="step">
+      <div class="step-title">
+        3.3 إرجاع 404 بدل 403 للملفات الحساسة
+        <span class="tag-problem">725/1000</span>
+        <span class="tag-impact">+3 نقاط</span>
+      </div>
+      <p><strong>المشكلة:</strong> ملفات <code>.env</code>, <code>.git</code>, <code>.htaccess</code>, <code>wp-config.php.bak</code> ترجع خطأ 403 مما يؤكد وجودها.</p>
+      <div class="code-block"><span class="comment"># Return 404 for sensitive files (hide their existence)</span>
+<span class="keyword">RewriteRule</span> ^\.env$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^\.git - [R=404,L]
+<span class="keyword">RewriteRule</span> ^\.htaccess$ - [R=404,L]
+<span class="keyword">RewriteRule</span> \.bak$ - [R=404,L]
+<span class="keyword">RewriteRule</span> \.sql$ - [R=404,L]
+<span class="keyword">RewriteRule</span> \.log$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^readme\.html$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^license\.txt$ - [R=404,L]</div>
+    </div>
+
+    <!-- 3.4 Hide WordPress -->
+    <div class="step">
+      <div class="step-title">
+        3.4 إخفاء WordPress وإصدارات التقنيات
+        <span class="tag-problem">550/1000</span>
+        <span class="tag-impact">+5 نقاط</span>
+      </div>
+      <p>في ملف <code>wp-content/themes/[قالبك]/functions.php</code> أضف في النهاية:</p>
+      <div class="code-block"><span class="comment">// Remove WordPress version</span>
+<span class="keyword">remove_action</span>('wp_head', 'wp_generator');
+<span class="keyword">remove_action</span>('wp_head', 'wlwmanifest_link');
+<span class="keyword">remove_action</span>('wp_head', 'rsd_link');
+
+<span class="comment">// Remove version from scripts and styles</span>
+<span class="keyword">function</span> <span class="string">remove_version_from_assets</span>($src) {
+    if (strpos($src, 'ver=')) {
+        $src = remove_query_arg('ver', $src);
+    }
+    return $src;
+}
+<span class="keyword">add_filter</span>('style_loader_src', 'remove_version_from_assets', 9999);
+<span class="keyword">add_filter</span>('script_loader_src', 'remove_version_from_assets', 9999);
+
+<span class="comment">// Remove X-Pingback header</span>
+<span class="keyword">function</span> <span class="string">remove_x_pingback</span>($headers) {
+    unset($headers['X-Pingback']);
+    return $headers;
+}
+<span class="keyword">add_filter</span>('wp_headers', 'remove_x_pingback');
+
+<span class="comment">// Disable XML-RPC</span>
+<span class="keyword">add_filter</span>('xmlrpc_enabled', '__return_false');
+
+<span class="comment">// Remove version from RSS</span>
+<span class="keyword">add_filter</span>('the_generator', function() { return ''; });</div>
+    </div>
+
+    <!-- 3.5 Full .htaccess -->
+    <div class="step">
+      <div class="step-title">
+        3.5 ملف .htaccess الكامل النهائي
+      </div>
+      <p>انسخ الكود التالي وأضفه في <strong>بداية</strong> ملف <code>.htaccess</code> (قبل قواعد WordPress):</p>
+      <div class="code-block"><span class="comment"># ============================================
+# VScan Security Hardening - uoturath.edu.iq
+# ============================================</span>
+
+<span class="keyword">RewriteEngine</span> On
+
+<span class="comment"># 1. Block dangerous HTTP methods</span>
+<span class="keyword">RewriteCond</span> %{REQUEST_METHOD} ^(<span class="important">TRACE|DELETE|PUT|PATCH|CONNECT</span>) [NC]
+<span class="keyword">RewriteRule</span> .* - [F,L]
+
+<span class="comment"># 2. Return 404 for sensitive files</span>
+<span class="keyword">RewriteRule</span> ^\.env$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^\.git - [R=404,L]
+<span class="keyword">RewriteRule</span> ^\.htaccess$ - [R=404,L]
+<span class="keyword">RewriteRule</span> \.bak$ - [R=404,L]
+<span class="keyword">RewriteRule</span> \.sql$ - [R=404,L]
+<span class="keyword">RewriteRule</span> \.log$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^readme\.html$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^license\.txt$ - [R=404,L]
+<span class="keyword">RewriteRule</span> ^wp-content/debug\.log$ - [R=404,L]
+
+<span class="comment"># 3. Protect admin area (change IP)</span>
+<span class="keyword">RewriteCond</span> %{REQUEST_URI} ^/(wp-admin|admin) [NC]
+<span class="keyword">RewriteCond</span> %{REMOTE_ADDR} !^<span class="important">YOUR.OFFICE.IP</span>$
+<span class="keyword">RewriteCond</span> %{REQUEST_URI} !^/wp-admin/admin-ajax\.php [NC]
+<span class="keyword">RewriteRule</span> .* - [R=404,L]
+
+<span class="comment"># 4. Disable directory listing</span>
+<span class="keyword">Options</span> -Indexes
+
+<span class="comment"># 5. Disable server signature</span>
+<span class="keyword">ServerSignature</span> Off
+
+<span class="comment"># 6. Block XML-RPC</span>
+&lt;Files xmlrpc.php&gt;
+    <span class="keyword">Require</span> all denied
+&lt;/Files&gt;
+
+<span class="comment"># 7. Protect wp-config.php</span>
+&lt;Files wp-config.php&gt;
+    <span class="keyword">Require</span> all denied
+&lt;/Files&gt;
+
+<span class="comment"># ============================================
+# End Security Hardening
+# ============================================</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Phase 4 -->
+<div class="phase phase-4">
+  <div class="phase-header">
+    <div class="phase-num">4</div>
+    <h2>التحقق وإعادة الفحص</h2>
+    <span class="time">⏱ 5 دقائق</span>
+  </div>
+  <div class="phase-body">
+
+    <div class="step">
+      <div class="step-title">4.1 قائمة التحقق النهائية</div>
+      <ul class="checklist">
+        <li>Cloudflare: HSTS مفعل (max-age=31536000 + includeSubDomains + preload)</li>
+        <li>Cloudflare: Permissions-Policy header مضاف</li>
+        <li>Cloudflare: X-Frame-Options = DENY</li>
+        <li>Cloudflare: Referrer-Policy = no-referrer</li>
+        <li>Cloudflare: Server header محذوف (Remove)</li>
+        <li>Cloudflare: Rate Limiting rule مفعلة</li>
+        <li>Cloudflare: DNSSEC مفعل + DS Record عند المسجّل</li>
+        <li>Cloudflare: Origin Certificate مثبتة على Plesk</li>
+        <li>DNS: سجل DMARC مضاف (p=reject)</li>
+        <li>DNS: سجل SPF محدّث بـ -all</li>
+        <li>DNS: سجلات CAA مضافة</li>
+        <li>Plesk: HTTP methods خطرة معطلة (nginx أو .htaccess)</li>
+        <li>Plesk: ملف .htaccess محدّث بكل القواعد</li>
+        <li>Plesk: functions.php محدّث (إخفاء WordPress)</li>
+        <li>انتظار 5 دقائق لتطبيق إعدادات Cloudflare</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-title">4.2 النتيجة المتوقعة بعد التطبيق</div>
+      <table class="result-table">
+        <thead>
+          <tr><th>الفئة</th><th>قبل</th><th>بعد</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>SSL/TLS</td><td class="score-before">938</td><td class="score-after">1000</td></tr>
+          <tr><td>ترويسات الأمان</td><td class="score-before">682</td><td class="score-after">1000</td></tr>
+          <tr><td>الكوكيز</td><td class="score-after">1000</td><td class="score-after">1000</td></tr>
+          <tr><td>معلومات السيرفر</td><td class="score-before">700</td><td class="score-after">1000</td></tr>
+          <tr><td>الملفات والمجلدات</td><td class="score-before">772</td><td class="score-after">1000</td></tr>
+          <tr><td>الأداء</td><td class="score-after">925</td><td class="score-after">~950+</td></tr>
+          <tr><td>حماية DDoS</td><td class="score-before">775</td><td class="score-after">1000</td></tr>
+          <tr><td>CORS</td><td class="score-after">1000</td><td class="score-after">1000</td></tr>
+          <tr><td>طرق HTTP</td><td class="score-before">500</td><td class="score-after">1000</td></tr>
+          <tr><td>أمان DNS</td><td class="score-before">512</td><td class="score-after">1000</td></tr>
+          <tr><td>المحتوى المختلط</td><td class="score-after">1000</td><td class="score-after">1000</td></tr>
+          <tr><td>تسريب المعلومات</td><td class="score-before">836</td><td class="score-after">1000</td></tr>
+          <tr style="font-weight:900;font-size:1.1em;background:#f0fdf4"><td>المجموع الكلي</td><td class="score-before">893</td><td class="score-after">~995-1000</td></tr>
+        </tbody>
+      </table>
+      <div class="info">درجة الأداء (Performance) تعتمد على سرعة السيرفر وقت الفحص ولا يمكن ضمان 1000 دائماً، لكن جميع المعايير الأخرى يجب أن تصل 1000 بعد تطبيق الخطوات.</div>
+    </div>
+
+    <div class="step">
+      <div class="step-title">4.3 أوقات التطبيق</div>
+      <table class="settings-table">
+        <tr><th>التغيير</th><th>الوقت المتوقع</th></tr>
+        <tr><td>Cloudflare Headers/HSTS</td><td>فوري — 5 دقائق</td></tr>
+        <tr><td>DNS Records (DMARC, SPF, CAA)</td><td>5 دقائق — ساعة</td></tr>
+        <tr><td>DNSSEC</td><td>24 — 48 ساعة</td></tr>
+        <tr><td>تغييرات .htaccess</td><td>فوري</td></tr>
+        <tr><td>تغييرات functions.php</td><td>فوري</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p>تم إنشاء هذا الدليل بواسطة <strong>VScan-MOHESR</strong> — منصة فحص أمان المواقع الإلكترونية</p>
+  <p style="margin-top:4px">تاريخ الفحص: 22 مارس 2026 &nbsp;|&nbsp; <a href="https://sec.erticaz.com/methodology-ar">معايير التقييم الكاملة</a></p>
+</div>
+
+</body>
+</html>

@@ -132,14 +132,32 @@ func (s *DirectoryScanner) Scan(url string) []models.CheckResult {
 				})
 			}
 		} else if resp.StatusCode == 403 {
-			// Path exists but forbidden - decent protection but path is confirmed
-			check.Status = "warn"
-			check.Score = 725
-			check.Severity = "low"
-			check.Details = toJSON(map[string]string{
-				"path":    sp.path,
-				"message": fmt.Sprintf("Path exists but forbidden (403): %s", sp.path),
-			})
+			// 403 can mean WAF/CDN protection (Cloudflare, etc.) or server config
+			// Check if it's a WAF/CDN blocking (which is good security)
+			isWAFProtected := resp.Header.Get("CF-RAY") != "" ||
+				resp.Header.Get("Server") == "cloudflare" ||
+				resp.Header.Get("X-Sucuri-ID") != "" ||
+				resp.Header.Get("X-CDN") != ""
+
+			if isWAFProtected {
+				// WAF/CDN is blocking access - this is good protection
+				check.Status = "pass"
+				check.Score = 900
+				check.Severity = "info"
+				check.Details = toJSON(map[string]string{
+					"path":    sp.path,
+					"message": fmt.Sprintf("Path blocked by WAF/CDN (403): %s - well protected", sp.path),
+				})
+			} else {
+				// Server returns 403 without WAF - path confirmed to exist
+				check.Status = "warn"
+				check.Score = 725
+				check.Severity = "low"
+				check.Details = toJSON(map[string]string{
+					"path":    sp.path,
+					"message": fmt.Sprintf("Path exists but forbidden (403): %s", sp.path),
+				})
+			}
 		} else {
 			check.Status = "pass"
 			check.Score = 1000

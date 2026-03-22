@@ -77,6 +77,24 @@ export const categoryInfo = {
     importance: 'medium',
     attackScenario: 'Error pages revealing "PHP 7.2.1" and "/var/www/html" paths allow attackers to search for specific CVEs for that PHP version and target the exact file system structure.',
   },
+  hosting: {
+    title: 'Hosting Quality',
+    description: 'Evaluates the quality of web hosting infrastructure including HTTP/2, HTTP/3 (QUIC), Brotli compression, IPv6 support, Keep-Alive connections, and DNS resolution speed.',
+    importance: 'high',
+    attackScenario: 'Poor hosting infrastructure with HTTP/1.1 only, no compression, and slow DNS makes the site vulnerable to performance-based attacks and provides a degraded user experience. Lack of IPv6 excludes a growing portion of internet users.',
+  },
+  content: {
+    title: 'Content Optimization',
+    description: 'Evaluates content delivery optimization including caching headers, page size, and compression effectiveness. Proper caching reduces server load and improves page load speed.',
+    importance: 'medium',
+    attackScenario: 'Without proper cache headers, every request hits the origin server, making it easier to overwhelm with traffic. Large uncompressed pages waste bandwidth and increase load times, degrading user experience and SEO rankings.',
+  },
+  advanced_security: {
+    title: 'Advanced Security Headers',
+    description: 'Modern cross-origin isolation headers (COEP, COOP, CORP) and OCSP Stapling provide defense-in-depth against sophisticated attacks like Spectre, cross-origin data leaks, and certificate validation delays.',
+    importance: 'medium',
+    attackScenario: 'Without cross-origin isolation, a malicious iframe or popup can exploit Spectre-class vulnerabilities to read sensitive data from the victim\'s browsing context. Without OCSP Stapling, certificate revocation checks add latency and may fail silently.',
+  },
 }
 
 export const checkExplanations = {

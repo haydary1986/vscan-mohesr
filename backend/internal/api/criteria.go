@@ -10,9 +10,9 @@ func GetScanCriteria(c *fiber.Ctx) error {
 			"name":        "VScan-MOHESR Security Assessment Methodology",
 			"version":     "2.0",
 			"max_score":   1000,
-			"description": "Comprehensive website security assessment framework developed for the Iraqi Ministry of Higher Education and Scientific Research (MOHESR). This methodology evaluates 12 security categories across 40+ individual checks to produce a normalized score on a 1000-point scale. Each category carries a percentage weight that reflects its relative importance to the overall security posture of a website.",
+			"description": "Comprehensive website security assessment framework developed for the Iraqi Ministry of Higher Education and Scientific Research (MOHESR). This methodology evaluates 15 categories across 50+ individual checks to produce a normalized score on a 1000-point scale. Each category carries a percentage weight that reflects its relative importance to the overall security posture of a website.",
 
-			"scoring_formula": "Overall Score = SUM(check_score * check_weight) / SUM(check_weight), where each check_score is on a 0-1000 scale.",
+			"scoring_formula": "Overall Score = SUM(category_weighted_score * category_weight) / SUM(category_weight), where each check_score is on a 0-1000 scale across 15 categories.",
 
 			"categories": []fiber.Map{
 				// ---------------------------------------------------------------
@@ -569,16 +569,6 @@ func GetScanCriteria(c *fiber.Ctx) error {
 					"importance":  "medium",
 					"checks": []fiber.Map{
 						{
-							"name":        "DNSSEC",
-							"weight":      2.0,
-							"max_score":   1000,
-							"description": "Checks for DNSSEC (Domain Name System Security Extensions) which protects against DNS spoofing and cache poisoning.",
-							"scoring": []fiber.Map{
-								{"condition": "DNS resolves successfully (partial verification)", "score": 700},
-								{"condition": "Domain cannot be resolved", "score": 0},
-							},
-						},
-						{
 							"name":        "SPF Record (Email Security)",
 							"weight":      2.0,
 							"max_score":   1000,
@@ -701,6 +691,203 @@ func GetScanCriteria(c *fiber.Ctx) error {
 							"scoring": []fiber.Map{
 								{"condition": "No significant technology version disclosures", "score": 1000},
 								{"condition": "Technology versions are exposed", "score": 400},
+							},
+						},
+					},
+				},
+
+				// ---------------------------------------------------------------
+				// 13. Hosting Quality (Weight: 12%)
+				// ---------------------------------------------------------------
+				{
+					"id":          "hosting",
+					"name":        "Hosting Quality",
+					"weight":      12.0,
+					"max_score":   1000,
+					"description": "Evaluates the quality of web hosting infrastructure including protocol support, compression, IPv6, and DNS performance",
+					"importance":  "high",
+					"checks": []fiber.Map{
+						{
+							"name":        "HTTP/2 Support",
+							"weight":      25,
+							"max_score":   1000,
+							"description": "Checks if the server supports HTTP/2 protocol for faster page loading",
+							"scoring": []fiber.Map{
+								{"condition": "HTTP/2 (h2) negotiated", "score": 1000},
+								{"condition": "Only HTTP/1.1 available", "score": 300},
+								{"condition": "Connection failed", "score": 0},
+							},
+						},
+						{
+							"name":        "HTTP/3 (QUIC) Support",
+							"weight":      20,
+							"max_score":   1000,
+							"description": "Checks if HTTP/3 with QUIC protocol is supported via Alt-Svc header",
+							"scoring": []fiber.Map{
+								{"condition": "HTTP/3 supported (h3 in Alt-Svc)", "score": 1000},
+								{"condition": "HTTP/3 not available", "score": 400},
+							},
+						},
+						{
+							"name":        "Brotli Compression",
+							"weight":      25,
+							"max_score":   1000,
+							"description": "Checks if Brotli compression is enabled for smaller transfer sizes",
+							"scoring": []fiber.Map{
+								{"condition": "Brotli (br) compression", "score": 1000},
+								{"condition": "Gzip compression", "score": 750},
+								{"condition": "Deflate compression", "score": 500},
+								{"condition": "No compression", "score": 100},
+							},
+						},
+						{
+							"name":        "IPv6 Support",
+							"weight":      15,
+							"max_score":   1000,
+							"description": "Checks if the domain has AAAA (IPv6) DNS records",
+							"scoring": []fiber.Map{
+								{"condition": "IPv6 (AAAA) records present", "score": 1000},
+								{"condition": "IPv4 only", "score": 350},
+							},
+						},
+						{
+							"name":        "Keep-Alive",
+							"weight":      10,
+							"max_score":   1000,
+							"description": "Checks if persistent connections are enabled for connection reuse",
+							"scoring": []fiber.Map{
+								{"condition": "HTTP/2 or Keep-Alive enabled", "score": 1000},
+								{"condition": "Connection: close", "score": 300},
+								{"condition": "No Connection header", "score": 700},
+							},
+						},
+						{
+							"name":        "DNS Resolution Time",
+							"weight":      25,
+							"max_score":   1000,
+							"description": "Measures how fast the domain name resolves to an IP address",
+							"scoring": []fiber.Map{
+								{"condition": "< 20ms", "score": 1000},
+								{"condition": "20-50ms", "score": "920-1000"},
+								{"condition": "50-100ms", "score": "800-920"},
+								{"condition": "100-200ms", "score": "600-800"},
+								{"condition": "200-500ms", "score": "300-600"},
+								{"condition": "> 500ms", "score": 100},
+							},
+						},
+					},
+				},
+
+				// ---------------------------------------------------------------
+				// 14. Content Optimization (Weight: 8%)
+				// ---------------------------------------------------------------
+				{
+					"id":          "content",
+					"name":        "Content Optimization",
+					"weight":      8.0,
+					"max_score":   1000,
+					"description": "Evaluates content delivery optimization including caching, page size, and compression effectiveness",
+					"importance":  "medium",
+					"checks": []fiber.Map{
+						{
+							"name":        "Cache Headers",
+							"weight":      40,
+							"max_score":   1000,
+							"description": "Checks if proper caching headers (Cache-Control, ETag) are configured",
+							"scoring": []fiber.Map{
+								{"condition": "Cache-Control max-age > 1 day + ETag", "score": 1000},
+								{"condition": "Cache-Control max-age > 1 day", "score": 850},
+								{"condition": "Cache-Control max-age > 1 hour", "score": 700},
+								{"condition": "Cache-Control with no-cache (for HTML)", "score": 800},
+								{"condition": "Only Expires header", "score": 500},
+								{"condition": "No caching headers", "score": 150},
+							},
+						},
+						{
+							"name":        "Page Size",
+							"weight":      30,
+							"max_score":   1000,
+							"description": "Measures the total size of the HTML page response",
+							"scoring": []fiber.Map{
+								{"condition": "< 50 KB", "score": 1000},
+								{"condition": "50-100 KB", "score": "900-1000"},
+								{"condition": "100-250 KB", "score": "750-900"},
+								{"condition": "250-500 KB", "score": "550-750"},
+								{"condition": "500 KB - 1 MB", "score": "300-550"},
+								{"condition": "> 3 MB", "score": 50},
+							},
+						},
+						{
+							"name":        "Compression Ratio",
+							"weight":      30,
+							"max_score":   1000,
+							"description": "Measures the effectiveness of content compression",
+							"scoring": []fiber.Map{
+								{"condition": "> 70% savings (ratio < 0.3)", "score": 1000},
+								{"condition": "50-70% savings", "score": "750-1000"},
+								{"condition": "30-50% savings", "score": "500-750"},
+								{"condition": "< 10% savings", "score": 100},
+							},
+						},
+					},
+				},
+
+				// ---------------------------------------------------------------
+				// 15. Advanced Security (Weight: 5%)
+				// ---------------------------------------------------------------
+				{
+					"id":          "advanced_security",
+					"name":        "Advanced Security",
+					"weight":      5.0,
+					"max_score":   1000,
+					"description": "Checks for modern cross-origin isolation headers and certificate transparency features",
+					"importance":  "medium",
+					"checks": []fiber.Map{
+						{
+							"name":        "Cross-Origin-Embedder-Policy (COEP)",
+							"weight":      12,
+							"max_score":   1000,
+							"description": "Controls which cross-origin resources can be loaded",
+							"scoring": []fiber.Map{
+								{"condition": "require-corp", "score": 1000},
+								{"condition": "credentialless", "score": 850},
+								{"condition": "unsafe-none", "score": 400},
+								{"condition": "Missing", "score": 200},
+							},
+						},
+						{
+							"name":        "Cross-Origin-Opener-Policy (COOP)",
+							"weight":      12,
+							"max_score":   1000,
+							"description": "Isolates the browsing context to prevent cross-origin attacks",
+							"scoring": []fiber.Map{
+								{"condition": "same-origin", "score": 1000},
+								{"condition": "same-origin-allow-popups", "score": 800},
+								{"condition": "unsafe-none", "score": 400},
+								{"condition": "Missing", "score": 200},
+							},
+						},
+						{
+							"name":        "Cross-Origin-Resource-Policy (CORP)",
+							"weight":      12,
+							"max_score":   1000,
+							"description": "Restricts which origins can read the resource",
+							"scoring": []fiber.Map{
+								{"condition": "same-origin", "score": 1000},
+								{"condition": "same-site", "score": 850},
+								{"condition": "cross-origin", "score": 500},
+								{"condition": "Missing", "score": 250},
+							},
+						},
+						{
+							"name":        "OCSP Stapling",
+							"weight":      15,
+							"max_score":   1000,
+							"description": "Checks if OCSP stapling is enabled for faster certificate validation",
+							"scoring": []fiber.Map{
+								{"condition": "OCSP Stapling enabled", "score": 1000},
+								{"condition": "OCSP Stapling not detected", "score": 350},
+								{"condition": "TLS connection failed", "score": 0},
 							},
 						},
 					},
