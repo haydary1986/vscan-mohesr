@@ -1,0 +1,198 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { getScanJobs, getTargets, startScan, deleteScanJob } from '../api'
+
+const router = useRouter()
+const jobs = ref([])
+const targets = ref([])
+const loading = ref(true)
+const showStartForm = ref(false)
+const scanning = ref(false)
+
+const scanForm = ref({
+  name: '',
+  target_ids: [],
+  selectAll: true,
+})
+
+async function loadData() {
+  loading.value = true
+  try {
+    const [jobsRes, targetsRes] = await Promise.all([getScanJobs(), getTargets()])
+    jobs.value = jobsRes.data
+    targets.value = targetsRes.data
+  } catch (e) {
+    console.error('Failed to load data:', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function runScan() {
+  scanning.value = true
+  try {
+    const payload = {
+      name: scanForm.value.name,
+      target_ids: scanForm.value.selectAll ? [] : scanForm.value.target_ids,
+    }
+    const { data } = await startScan(payload)
+    showStartForm.value = false
+    scanForm.value = { name: '', target_ids: [], selectAll: true }
+    await loadData()
+    // Poll for completion
+    pollJob(data.ID)
+  } catch (e) {
+    console.error('Failed to start scan:', e)
+  } finally {
+    scanning.value = false
+  }
+}
+
+function pollJob(jobId) {
+  const interval = setInterval(async () => {
+    try {
+      await loadData()
+      const job = jobs.value.find(j => j.ID === jobId)
+      if (job && (job.status === 'completed' || job.status === 'failed')) {
+        clearInterval(interval)
+      }
+    } catch {
+      clearInterval(interval)
+    }
+  }, 3000)
+}
+
+async function removeJob(id) {
+  if (!confirm('Delete this scan job and all its results?')) return
+  try {
+    await deleteScanJob(id)
+    await loadData()
+  } catch (e) {
+    console.error('Failed to delete job:', e)
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleString('en-GB', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+onMounted(loadData)
+</script>
+
+<template>
+  <div>
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Scans</h1>
+        <p class="text-gray-500 mt-1">Manage and run security scans</p>
+      </div>
+      <button
+        @click="showStartForm = !showStartForm"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Start New Scan
+      </button>
+    </div>
+
+    <!-- Start Scan Form -->
+    <div v-if="showStartForm" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">Configure Scan</h3>
+      <form @submit.prevent="runScan">
+        <div class="mb-4">
+          <label class="block text-sm text-gray-600 mb-1">Scan Name (optional)</label>
+          <input
+            v-model="scanForm.name"
+            type="text"
+            placeholder="e.g., March 2026 Assessment"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+
+        <div class="mb-4">
+          <label class="flex items-center gap-2 mb-3">
+            <input v-model="scanForm.selectAll" type="checkbox" class="rounded text-indigo-600" />
+            <span class="text-sm text-gray-700">Scan all targets ({{ targets.length }} websites)</span>
+          </label>
+
+          <div v-if="!scanForm.selectAll" class="border border-gray-200 rounded-lg p-3 max-h-60 overflow-y-auto">
+            <label v-for="target in targets" :key="target.ID" class="flex items-center gap-2 py-1">
+              <input v-model="scanForm.target_ids" :value="target.ID" type="checkbox" class="rounded text-indigo-600" />
+              <span class="text-sm">{{ target.name || target.url }}</span>
+              <span class="text-xs text-gray-400">{{ target.url }}</span>
+            </label>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          :disabled="scanning || targets.length === 0"
+          class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <div v-if="scanning" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          {{ scanning ? 'Starting...' : 'Start Scan' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center py-20">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+
+    <!-- Scan Jobs List -->
+    <div v-else class="space-y-4">
+      <div v-for="job in jobs" :key="job.ID" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">{{ job.name || 'Unnamed Scan' }}</h3>
+            <p class="text-sm text-gray-500 mt-1">Created: {{ formatDate(job.CreatedAt) }}</p>
+            <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+              <span v-if="job.started_at">Started: {{ formatDate(job.started_at) }}</span>
+              <span v-if="job.ended_at">Ended: {{ formatDate(job.ended_at) }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span :class="[
+              'px-3 py-1 rounded-full text-sm font-medium',
+              job.status === 'completed' ? 'bg-green-100 text-green-700' :
+              job.status === 'running' ? 'bg-blue-100 text-blue-700 animate-pulse' :
+              job.status === 'failed' ? 'bg-red-100 text-red-700' :
+              'bg-gray-100 text-gray-700'
+            ]">
+              {{ job.status }}
+            </span>
+            <button
+              @click="router.push(`/scans/${job.ID}`)"
+              class="px-3 py-1 text-sm text-indigo-600 border border-indigo-300 rounded-lg hover:bg-indigo-50"
+            >
+              View Details
+            </button>
+            <button
+              @click="removeJob(job.ID)"
+              class="px-3 py-1 text-sm text-red-500 border border-red-300 rounded-lg hover:bg-red-50"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!jobs.length" class="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <p class="text-lg text-gray-400">No scans yet</p>
+        <p class="text-sm text-gray-400 mt-1">Start a new scan to check your targets</p>
+      </div>
+    </div>
+  </div>
+</template>

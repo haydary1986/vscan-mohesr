@@ -1,0 +1,139 @@
+package scanner
+
+import (
+	"crypto/tls"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
+	"vscan-mohesr/internal/models"
+)
+
+type DirectoryScanner struct{}
+
+func NewDirectoryScanner() *DirectoryScanner {
+	return &DirectoryScanner{}
+}
+
+func (s *DirectoryScanner) Name() string     { return "Directory Listing Scanner" }
+func (s *DirectoryScanner) Category() string { return "directory" }
+func (s *DirectoryScanner) Weight() float64  { return 10.0 }
+
+func (s *DirectoryScanner) Scan(url string) []models.CheckResult {
+	var results []models.CheckResult
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	baseURL := ensureHTTPS(url)
+
+	// Common sensitive paths to check
+	sensitivePaths := []struct {
+		path     string
+		name     string
+		severity string
+	}{
+		{"/robots.txt", "Robots.txt Exposure", "info"},
+		{"/.env", "Environment File Exposure", "critical"},
+		{"/.git/config", "Git Repository Exposure", "critical"},
+		{"/phpinfo.php", "PHP Info Exposure", "high"},
+		{"/admin/", "Admin Panel Exposure", "high"},
+		{"/backup/", "Backup Directory Exposure", "critical"},
+		{"/.htaccess", "Htaccess File Exposure", "high"},
+		{"/wp-config.php.bak", "WordPress Config Backup", "critical"},
+		{"/server-status", "Server Status Exposure", "high"},
+	}
+
+	weightPerCheck := s.Weight() / float64(len(sensitivePaths))
+
+	for _, sp := range sensitivePaths {
+		check := models.CheckResult{
+			Category:  s.Category(),
+			CheckName: sp.name,
+			Weight:    weightPerCheck,
+		}
+
+		checkURL := baseURL + sp.path
+		resp, err := client.Get(checkURL)
+		if err != nil {
+			check.Status = "info"
+			check.Score = 100
+			check.Severity = "info"
+			check.Details = toJSON(map[string]string{
+				"path":    sp.path,
+				"message": "Path not accessible",
+			})
+			results = append(results, check)
+			continue
+		}
+
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		resp.Body.Close()
+
+		bodyStr := string(body)
+
+		if resp.StatusCode == 200 {
+			// Check if it's actually exposing sensitive data
+			if sp.path == "/robots.txt" {
+				check.Status = "info"
+				check.Score = 90
+				check.Severity = "info"
+				check.Details = toJSON(map[string]string{
+					"path":    sp.path,
+					"message": "robots.txt found - review for sensitive path disclosure",
+					"preview": truncate(bodyStr, 200),
+				})
+			} else if strings.Contains(bodyStr, "Index of") || strings.Contains(bodyStr, "Directory listing") {
+				check.Status = "fail"
+				check.Score = 0
+				check.Severity = sp.severity
+				check.Details = toJSON(map[string]string{
+					"path":    sp.path,
+					"message": fmt.Sprintf("Directory listing enabled at %s", sp.path),
+				})
+			} else {
+				check.Status = "fail"
+				check.Score = 10
+				check.Severity = sp.severity
+				check.Details = toJSON(map[string]string{
+					"path":    sp.path,
+					"message": fmt.Sprintf("Sensitive path accessible: %s", sp.path),
+				})
+			}
+		} else if resp.StatusCode == 403 {
+			check.Status = "warning"
+			check.Score = 70
+			check.Severity = "low"
+			check.Details = toJSON(map[string]string{
+				"path":    sp.path,
+				"message": fmt.Sprintf("Path exists but forbidden (403): %s", sp.path),
+			})
+		} else {
+			check.Status = "pass"
+			check.Score = 100
+			check.Severity = "info"
+			check.Details = toJSON(map[string]string{
+				"path":        sp.path,
+				"message":     "Path not found",
+				"status_code": fmt.Sprintf("%d", resp.StatusCode),
+			})
+		}
+
+		results = append(results, check)
+	}
+
+	return results
+}
+
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
+}

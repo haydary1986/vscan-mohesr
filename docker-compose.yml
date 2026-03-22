@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vscan-backend
+    restart: unless-stopped
+    volumes:
+      - vscan-data:/app/data
+    environment:
+      - GIN_MODE=release
+    networks:
+      - vscan-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vscan-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - vscan-network
+
+volumes:
+  vscan-data:
+
+networks:
+  vscan-network:
+    driver: bridge

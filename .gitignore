@@ -1,0 +1,22 @@
+# Go
+backend/main
+backend/vscan-server
+backend/*.db
+*.exe
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+*.db
+/data/

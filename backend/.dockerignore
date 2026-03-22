@@ -1,0 +1,4 @@
+*.db
+main
+vscan-server
+.git
