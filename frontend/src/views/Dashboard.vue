@@ -94,6 +94,7 @@ onMounted(async () => {
       'Content Optimization',
       'Advanced Security',
       'Malware & Threats',
+      'Threat Intelligence',
     ]
 
     // Attempt to derive meaningful per-category estimates from available data

@@ -45,6 +45,7 @@ func NewEngine() *Engine {
 			NewHostingScanner(),
 			NewAdvancedSecurityScanner(),
 			NewMalwareScanner(),
+			NewThreatIntelScanner(),
 		},
 	}
 }

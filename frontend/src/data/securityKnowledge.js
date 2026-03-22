@@ -95,6 +95,12 @@ export const categoryInfo = {
     importance: 'medium',
     attackScenario: 'Without cross-origin isolation, a malicious iframe or popup can exploit Spectre-class vulnerabilities to read sensitive data from the victim\'s browsing context. Without OCSP Stapling, certificate revocation checks add latency and may fail silently.',
   },
+  threat_intel: {
+    title: 'Threat Intelligence',
+    description: 'Advanced threat detection including cryptojacking resource abuse, Command & Control (C2) server communication, DNS blacklist checking, and domain age/reputation analysis via WHOIS/RDAP data.',
+    importance: 'critical',
+    attackScenario: 'Compromised sites may silently mine cryptocurrency using visitor CPU, communicate with C2 servers to receive attack commands, or be listed on blacklists indicating prior malicious activity. New or recently registered domains hosting important services may indicate domain hijacking.',
+  },
   malware: {
     title: 'Malware & Threats',
     description: 'Scans the website for malware indicators including malicious JavaScript, hidden iframes, cryptocurrency miners, suspicious redirects, and known malware signatures.',
