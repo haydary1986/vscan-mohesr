@@ -24,6 +24,9 @@ WORKDIR /app
 # Copy Go binary
 COPY --from=backend-builder /app/backend/vscan-server .
 
+# Copy fonts for PDF Arabic support
+COPY backend/assets/fonts/ /app/assets/fonts/
+
 # Copy Vue.js build output
 COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
 

@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -10,7 +12,6 @@ import (
 	"vscan-mohesr/internal/services"
 )
 
-// GeneratePDFReport generates a downloadable PDF security report for a scan result.
 func GeneratePDFReport(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -24,10 +25,20 @@ func GeneratePDFReport(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate PDF report"})
 	}
 
-	filename := fmt.Sprintf("vscan-report-%s.pdf", result.ScanTarget.URL)
+	// Use website name or URL as filename
+	name := result.ScanTarget.Name
+	if name == "" {
+		name = result.ScanTarget.URL
+	}
+	// Sanitize filename - replace spaces and special chars
+	name = strings.ReplaceAll(name, " ", "-")
+	name = strings.ReplaceAll(name, "/", "-")
+	safeName := url.PathEscape(name)
+
+	filename := fmt.Sprintf("VScan-Report-%s.pdf", safeName)
 
 	c.Set("Content-Type", "application/pdf")
-	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"; filename*=UTF-8''%s", filename, safeName+".pdf"))
 
 	return c.Send(pdfBytes)
 }
