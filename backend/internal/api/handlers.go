@@ -14,7 +14,7 @@ import (
 
 func GetTargets(c *fiber.Ctx) error {
 	var targets []models.ScanTarget
-	config.DB.Order("created_at desc").Find(&targets)
+	ScopedDB(c).Order("created_at desc").Find(&targets)
 	return c.JSON(targets)
 }
 
@@ -26,6 +26,7 @@ func CreateTarget(c *fiber.Ctx) error {
 	if target.URL == "" {
 		return c.Status(400).JSON(fiber.Map{"error": "URL is required"})
 	}
+	target.OrganizationID = GetUserOrgID(c)
 	config.DB.Create(&target)
 	return c.Status(201).JSON(target)
 }
@@ -43,10 +44,12 @@ func CreateBulkTargets(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "At least one target is required"})
 	}
 
+	orgID := GetUserOrgID(c)
 	for i := range req.Targets {
 		if req.Targets[i].URL == "" {
 			return c.Status(400).JSON(fiber.Map{"error": "All targets must have a URL"})
 		}
+		req.Targets[i].OrganizationID = orgID
 	}
 
 	config.DB.Create(&req.Targets)
@@ -56,7 +59,7 @@ func CreateBulkTargets(c *fiber.Ctx) error {
 func DeleteTarget(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var target models.ScanTarget
-	if err := config.DB.First(&target, id).Error; err != nil {
+	if err := ScopedDB(c).First(&target, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Target not found"})
 	}
 	config.DB.Delete(&target)
@@ -66,7 +69,7 @@ func DeleteTarget(c *fiber.Ctx) error {
 func UpdateTarget(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var target models.ScanTarget
-	if err := config.DB.First(&target, id).Error; err != nil {
+	if err := ScopedDB(c).First(&target, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Target not found"})
 	}
 
@@ -83,7 +86,7 @@ func UpdateTarget(c *fiber.Ctx) error {
 
 func GetScanJobs(c *fiber.Ctx) error {
 	var jobs []models.ScanJob
-	config.DB.Order("created_at desc").Find(&jobs)
+	ScopedDB(c).Order("created_at desc").Find(&jobs)
 
 	// Add progress info to each job
 	var result []fiber.Map
@@ -205,12 +208,12 @@ func StartScan(c *fiber.Ctx) error {
 		}
 	}
 
-	// If no target IDs provided, scan all targets
+	// If no target IDs provided, scan all targets (scoped to org)
 	var targets []models.ScanTarget
 	if len(req.TargetIDs) > 0 {
-		config.DB.Where("id IN ?", req.TargetIDs).Find(&targets)
+		ScopedDB(c).Where("id IN ?", req.TargetIDs).Find(&targets)
 	} else {
-		config.DB.Find(&targets)
+		ScopedDB(c).Find(&targets)
 	}
 
 	if len(targets) == 0 {
@@ -219,9 +222,10 @@ func StartScan(c *fiber.Ctx) error {
 
 	// Create scan job
 	job := models.ScanJob{
-		Name:   req.Name,
-		Status: "pending",
-		UserID: userID,
+		OrganizationID: GetUserOrgID(c),
+		Name:           req.Name,
+		Status:         "pending",
+		UserID:         userID,
 	}
 	if job.Name == "" {
 		job.Name = "Scan " + time.Now().Format("2006-01-02 15:04")

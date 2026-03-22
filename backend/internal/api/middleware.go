@@ -5,21 +5,53 @@ import (
 	"gorm.io/gorm"
 
 	"vscan-mohesr/internal/config"
+	"vscan-mohesr/internal/models"
 )
 
-// ScopedDB returns a GORM DB instance scoped to the current organization
+// GetUserOrgID looks up the organization ID for the authenticated user
+func GetUserOrgID(c *fiber.Ctx) uint {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok || userID == 0 {
+		return 0
+	}
+
+	var membership models.OrgMembership
+	if err := config.DB.Where("user_id = ?", userID).First(&membership).Error; err != nil {
+		return 0
+	}
+	return membership.OrganizationID
+}
+
+// GetUserOrg returns the full organization for the authenticated user
+func GetUserOrg(c *fiber.Ctx) *models.Organization {
+	orgID := GetUserOrgID(c)
+	if orgID == 0 {
+		return nil
+	}
+	var org models.Organization
+	if err := config.DB.First(&org, orgID).Error; err != nil {
+		return nil
+	}
+	return &org
+}
+
+// ScopedDB returns a GORM DB instance scoped to the current user's organization
+// System admins (role=admin) see all data
 func ScopedDB(c *fiber.Ctx) *gorm.DB {
-	orgID, ok := c.Locals("org_id").(uint)
-	if !ok || orgID == 0 {
+	role, _ := c.Locals("role").(string)
+	if role == "admin" {
 		return config.DB
+	}
+	orgID := GetUserOrgID(c)
+	if orgID == 0 {
+		return config.DB.Where("1 = 0") // return empty - no org found
 	}
 	return config.DB.Where("organization_id = ?", orgID)
 }
 
 // OrgID extracts current org ID from context
 func OrgID(c *fiber.Ctx) uint {
-	orgID, _ := c.Locals("org_id").(uint)
-	return orgID
+	return GetUserOrgID(c)
 }
 
 // UserID extracts current user ID from context
