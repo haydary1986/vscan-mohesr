@@ -220,6 +220,25 @@ func StartScan(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "No targets found to scan"})
 	}
 
+	// Check domain verification (skip for system admin)
+	userRole, _ := c.Locals("role").(string)
+	if userRole != "admin" {
+		var unverifiedDomains []string
+		for _, target := range targets {
+			var verification models.DomainVerification
+			err := config.DB.Where("scan_target_id = ? AND is_verified = ?", target.ID, true).First(&verification).Error
+			if err != nil {
+				unverifiedDomains = append(unverifiedDomains, target.URL)
+			}
+		}
+		if len(unverifiedDomains) > 0 {
+			return c.Status(403).JSON(fiber.Map{
+				"error":              "Some targets are not verified. Please verify domain ownership before scanning.",
+				"unverified_domains": unverifiedDomains,
+			})
+		}
+	}
+
 	// Create scan job
 	job := models.ScanJob{
 		OrganizationID: GetUserOrgID(c),

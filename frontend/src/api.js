@@ -88,4 +88,14 @@ export const updateSchedule = (id, data) => api.put(`/schedules/${id}`, data)
 export const deleteSchedule = (id) => api.delete(`/schedules/${id}`)
 export const toggleSchedule = (id) => api.put(`/schedules/${id}/toggle`)
 
+// Domain Verification
+export const initiateVerification = (targetId) => api.post(`/targets/${targetId}/verify`)
+export const getVerificationStatus = (targetId) => api.get(`/targets/${targetId}/verify`)
+export const checkVerification = (targetId) => api.put(`/targets/${targetId}/verify`)
+
+// API Keys
+export const generateAPIKey = (data) => api.post('/api-keys', data)
+export const listAPIKeys = () => api.get('/api-keys')
+export const revokeAPIKey = (id) => api.delete(`/api-keys/${id}`)
+
 export default api

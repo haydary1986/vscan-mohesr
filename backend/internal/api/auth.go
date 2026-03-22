@@ -235,6 +235,43 @@ func ChangePassword(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Password changed successfully"})
 }
 
+func UpdateProfile(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(uint)
+
+	var req struct {
+		Username string `json:"username"`
+		FullName string `json:"full_name"`
+		Email    string `json:"email"`
+		Phone    string `json:"phone"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	var user models.User
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	// Check username uniqueness if changed
+	if req.Username != "" && req.Username != user.Username {
+		var existing models.User
+		if config.DB.Where("username = ? AND id != ?", req.Username, userID).First(&existing).Error == nil {
+			return c.Status(409).JSON(fiber.Map{"error": "Username already taken"})
+		}
+		user.Username = req.Username
+	}
+	if req.FullName != "" {
+		user.FullName = req.FullName
+	}
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+
+	config.DB.Save(&user)
+	return c.JSON(user)
+}
+
 // --- Admin: User Management ---
 
 func GetUsers(c *fiber.Ctx) error {
@@ -339,6 +376,28 @@ func DeleteUser(c *fiber.Ctx) error {
 
 func AuthRequired() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// Check for API key authentication first
+		apiKeyHeader := c.Get("X-API-Key")
+		if apiKeyHeader != "" && strings.HasPrefix(apiKeyHeader, "vsk_") {
+			userID := AuthenticateAPIKey(apiKeyHeader)
+			if userID == 0 {
+				return c.Status(401).JSON(fiber.Map{"error": "Invalid API key"})
+			}
+
+			// Load user details
+			var user models.User
+			if err := config.DB.First(&user, userID).Error; err != nil {
+				return c.Status(401).JSON(fiber.Map{"error": "API key user not found"})
+			}
+
+			c.Locals("user_id", user.ID)
+			c.Locals("username", user.Username)
+			c.Locals("role", user.Role)
+
+			return c.Next()
+		}
+
+		// Fall back to JWT Bearer token authentication
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
 			return c.Status(401).JSON(fiber.Map{"error": "Authorization header required"})

@@ -1,11 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getTargets, createTarget, createBulkTargets, deleteTarget } from '../api'
+import { getTargets, createTarget, createBulkTargets, deleteTarget, initiateVerification, getVerificationStatus, checkVerification } from '../api'
 
 const targets = ref([])
 const loading = ref(true)
 const showAddForm = ref(false)
 const showBulkForm = ref(false)
+const verificationStatuses = ref({})
+const verifyingTarget = ref(null)
+const verificationMessage = ref('')
+const verificationError = ref('')
 
 const newTarget = ref({ url: '', name: '', institution: '' })
 const bulkText = ref('')
@@ -15,11 +19,77 @@ async function loadTargets() {
   try {
     const { data } = await getTargets()
     targets.value = data
+    // Load verification status for each target
+    for (const target of data) {
+      await loadVerificationStatus(target.ID)
+    }
   } catch (e) {
     console.error('Failed to load targets:', e)
   } finally {
     loading.value = false
   }
+}
+
+async function loadVerificationStatus(targetId) {
+  try {
+    const { data } = await getVerificationStatus(targetId)
+    verificationStatuses.value[targetId] = data
+  } catch (e) {
+    verificationStatuses.value[targetId] = { verified: false, initiated: false }
+  }
+}
+
+async function startVerification(targetId) {
+  verificationMessage.value = ''
+  verificationError.value = ''
+  try {
+    const { data } = await initiateVerification(targetId)
+    verificationStatuses.value[targetId] = {
+      verified: false,
+      initiated: true,
+      verification: data.verification,
+      txt_record: data.txt_record,
+      domain: data.domain,
+      instructions: data.instructions,
+    }
+    verifyingTarget.value = targetId
+  } catch (e) {
+    console.error('Failed to initiate verification:', e)
+    verificationError.value = 'Failed to initiate verification'
+  }
+}
+
+async function verifyDomain(targetId) {
+  verificationMessage.value = ''
+  verificationError.value = ''
+  try {
+    const { data } = await checkVerification(targetId)
+    if (data.verified) {
+      verificationMessage.value = 'Domain verified successfully!'
+      await loadVerificationStatus(targetId)
+    } else {
+      verificationError.value = data.message || 'Verification failed. TXT record not found.'
+    }
+  } catch (e) {
+    console.error('Failed to verify domain:', e)
+    verificationError.value = 'Verification check failed. Please try again.'
+  }
+}
+
+function isVerified(targetId) {
+  return verificationStatuses.value[targetId]?.verified === true
+}
+
+function isInitiated(targetId) {
+  return verificationStatuses.value[targetId]?.initiated === true
+}
+
+function getTxtRecord(targetId) {
+  return verificationStatuses.value[targetId]?.txt_record || ''
+}
+
+function getDomain(targetId) {
+  return verificationStatuses.value[targetId]?.domain || ''
 }
 
 async function addTarget() {
@@ -150,6 +220,14 @@ uobasrah.edu.iq, University of Basrah, University"
       </button>
     </div>
 
+    <!-- Verification Messages -->
+    <div v-if="verificationMessage" class="bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-6">
+      {{ verificationMessage }}
+    </div>
+    <div v-if="verificationError" class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6">
+      {{ verificationError }}
+    </div>
+
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -164,6 +242,7 @@ uobasrah.edu.iq, University of Basrah, University"
             <th class="text-right py-3 px-4 text-gray-600 font-medium">URL</th>
             <th class="text-right py-3 px-4 text-gray-600 font-medium">Name</th>
             <th class="text-right py-3 px-4 text-gray-600 font-medium">Institution</th>
+            <th class="text-center py-3 px-4 text-gray-600 font-medium">Verification</th>
             <th class="text-center py-3 px-4 text-gray-600 font-medium">Actions</th>
           </tr>
         </thead>
@@ -178,9 +257,81 @@ uobasrah.edu.iq, University of Basrah, University"
             <td class="py-3 px-4 text-gray-900">{{ target.name || '-' }}</td>
             <td class="py-3 px-4 text-gray-600">{{ target.institution || '-' }}</td>
             <td class="py-3 px-4 text-center">
+              <!-- Verified -->
+              <span v-if="isVerified(target.ID)" class="inline-flex items-center gap-1 text-green-600 font-medium text-xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Verified
+              </span>
+              <!-- Not initiated -->
+              <button
+                v-else-if="!isInitiated(target.ID)"
+                @click="startVerification(target.ID)"
+                class="text-xs px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full hover:bg-yellow-200 transition-colors"
+              >
+                Verify Domain
+              </button>
+              <!-- Initiated but not verified -->
+              <div v-else class="text-xs">
+                <span class="inline-flex items-center gap-1 text-yellow-600 font-medium">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Pending
+                </span>
+                <button
+                  @click="verifyingTarget = verifyingTarget === target.ID ? null : target.ID"
+                  class="block mt-1 text-indigo-600 hover:text-indigo-800 underline"
+                >
+                  {{ verifyingTarget === target.ID ? 'Hide Instructions' : 'Show Instructions' }}
+                </button>
+              </div>
+            </td>
+            <td class="py-3 px-4 text-center">
               <button @click="removeTarget(target.ID)" class="text-red-500 hover:text-red-700 text-sm">
                 Delete
               </button>
+            </td>
+          </tr>
+
+          <!-- Verification instructions row (expandable) -->
+          <tr v-for="target in targets" :key="'verify-' + target.ID" v-show="verifyingTarget === target.ID && isInitiated(target.ID) && !isVerified(target.ID)">
+            <td colspan="6" class="px-4 py-4 bg-blue-50 border-t border-blue-100">
+              <div class="max-w-2xl">
+                <h4 class="font-semibold text-gray-900 mb-3">Domain Verification for {{ getDomain(target.ID) }}</h4>
+                <div class="bg-white rounded-lg border border-blue-200 p-4 mb-4">
+                  <p class="text-sm text-gray-600 mb-2">Add this TXT record to your DNS:</p>
+                  <div class="flex items-center gap-2">
+                    <code class="bg-gray-100 text-gray-800 px-3 py-2 rounded text-sm font-mono flex-1">
+                      {{ getTxtRecord(target.ID) }}
+                    </code>
+                    <button
+                      @click="navigator.clipboard.writeText(getTxtRecord(target.ID))"
+                      class="px-3 py-2 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+                <div class="text-sm text-gray-600 space-y-1 mb-4">
+                  <p class="font-medium text-gray-700">Steps:</p>
+                  <ol class="list-decimal list-inside space-y-1 mr-4">
+                    <li>Log in to your DNS provider for {{ getDomain(target.ID) }}</li>
+                    <li>Add a new TXT record to the root domain</li>
+                    <li>Set the value to: <code class="bg-gray-100 px-1 rounded text-xs">{{ getTxtRecord(target.ID) }}</code></li>
+                    <li>Wait for DNS propagation (may take up to 24 hours)</li>
+                    <li>Click "Check Verification" below</li>
+                  </ol>
+                </div>
+                <button
+                  @click="verifyDomain(target.ID)"
+                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                >
+                  Check Verification
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

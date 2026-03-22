@@ -1,15 +1,111 @@
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
+const showSignupInfo = ref(false)
+const mobileMenuOpen = ref(false)
+const scrolled = ref(false)
+
+function handleScroll() {
+  scrolled.value = window.scrollY > 10
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
+function openSignup() {
+  showSignupInfo.value = true
+  mobileMenuOpen.value = false
+}
+
+function closeSignup() {
+  showSignupInfo.value = false
+}
+
+function goRegister() {
+  showSignupInfo.value = false
+  router.push('/register')
+}
+
+function goPricing() {
+  showSignupInfo.value = false
+  router.push('/pricing')
+}
 </script>
 
 <template>
   <div class="min-h-screen bg-white" dir="rtl">
 
+    <!-- Signup Info Modal -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showSignupInfo" class="fixed inset-0 z-[100] flex items-center justify-center p-4" dir="rtl">
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeSignup"></div>
+          <!-- Modal -->
+          <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 z-10 transform transition-all">
+            <!-- Close button -->
+            <button @click="closeSignup" class="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <!-- Icon -->
+            <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+
+            <h3 class="text-2xl font-bold text-gray-900 text-center mb-2">مرحباً بك في VScan</h3>
+            <p class="text-gray-600 text-center mb-5">ستبدأ بالخطة المجانية التي تشمل:</p>
+
+            <div class="bg-indigo-50 rounded-xl p-5 mb-5 space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-800">5 مواقع</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-800">10 فحوصات شهرياً</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-800">5 فئات فحص</span>
+              </div>
+            </div>
+
+            <p class="text-sm text-gray-500 text-center mb-6">يمكنك الترقية في أي وقت للحصول على المزيد من الميزات</p>
+
+            <div class="flex flex-col gap-3">
+              <button @click="goRegister" class="w-full px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+                متابعة التسجيل
+              </button>
+              <button @click="goPricing" class="w-full px-6 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+                تعرّف على الخطط
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Navbar -->
-    <nav class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+    <nav :class="['fixed top-0 inset-x-0 z-50 transition-all duration-300', scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100' : 'bg-white/60 backdrop-blur-sm']">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
+          <!-- Logo (Right side in RTL) -->
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,17 +114,52 @@ const router = useRouter()
             </div>
             <span class="text-xl font-bold text-gray-900">VScan</span>
           </div>
-          <div class="flex items-center gap-4">
-            <router-link to="/methodology-ar" class="text-sm text-gray-600 hover:text-indigo-600 transition-colors">معايير التقييم</router-link>
-            <router-link to="/methodology" class="text-sm text-gray-600 hover:text-indigo-600 transition-colors">Methodology</router-link>
-            <router-link to="/pricing" class="text-sm text-gray-600 hover:text-indigo-600 transition-colors">الأسعار</router-link>
-            <router-link to="/login" class="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+
+          <!-- Center links (hidden on mobile) -->
+          <div class="hidden md:flex items-center gap-8">
+            <a href="#" @click.prevent="window.scrollTo({top:0,behavior:'smooth'})" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">الرئيسية</a>
+            <router-link to="/methodology-ar" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">معايير التقييم</router-link>
+            <router-link to="/pricing" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">الأسعار</router-link>
+            <router-link to="/methodology" class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors">Methodology</router-link>
+          </div>
+
+          <!-- Buttons (Left side in RTL, hidden on mobile) -->
+          <div class="hidden md:flex items-center gap-3">
+            <router-link to="/login" class="px-5 py-2 text-sm font-medium text-indigo-600 border border-indigo-300 rounded-lg hover:bg-indigo-50 transition-colors">
               تسجيل الدخول
             </router-link>
+            <button @click="openSignup" class="px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+              ابدأ مجاناً
+            </button>
           </div>
+
+          <!-- Mobile hamburger -->
+          <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+            <svg v-if="!mobileMenuOpen" class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg v-else class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
       </div>
+
+      <!-- Mobile menu -->
+      <Transition name="slide">
+        <div v-if="mobileMenuOpen" class="md:hidden bg-white border-t border-gray-100 shadow-lg">
+          <div class="px-4 py-4 space-y-2">
+            <a href="#" @click.prevent="mobileMenuOpen = false; window.scrollTo({top:0,behavior:'smooth'})" class="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors">الرئيسية</a>
+            <router-link to="/methodology-ar" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors">معايير التقييم</router-link>
+            <router-link to="/pricing" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors">الأسعار</router-link>
+            <router-link to="/methodology" @click="mobileMenuOpen = false" class="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors">Methodology</router-link>
+            <div class="pt-3 border-t border-gray-100 space-y-2">
+              <router-link to="/login" @click="mobileMenuOpen = false" class="block w-full text-center px-4 py-2.5 text-sm font-medium text-indigo-600 border border-indigo-300 rounded-lg hover:bg-indigo-50 transition-colors">تسجيل الدخول</router-link>
+              <button @click="openSignup" class="block w-full text-center px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">ابدأ مجاناً</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </nav>
+
+    <!-- Spacer for fixed navbar -->
+    <div class="h-16"></div>
 
     <!-- Hero Section -->
     <section class="relative overflow-hidden">
@@ -56,9 +187,9 @@ const router = useRouter()
           </p>
 
           <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <router-link to="/register" class="px-8 py-3.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300">
+            <button @click="openSignup" class="px-8 py-3.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300">
               ابدأ الفحص مجاناً
-            </router-link>
+            </button>
             <router-link to="/methodology-ar" class="px-8 py-3.5 bg-white text-gray-700 font-semibold rounded-xl border border-gray-300 hover:border-indigo-300 hover:text-indigo-600 transition-all">
               تعرّف على معايير التقييم
             </router-link>
@@ -141,8 +272,10 @@ const router = useRouter()
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div v-for="(step, i) in steps" :key="i" class="text-center">
-            <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-black text-indigo-600">
+          <div v-for="(step, i) in steps" :key="i" class="text-center relative">
+            <!-- Connector line (hidden on last item and on mobile) -->
+            <div v-if="i < steps.length - 1" class="hidden md:block absolute top-7 left-0 w-full h-0.5 bg-indigo-100 -translate-x-1/2"></div>
+            <div class="relative z-10 w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-xl font-black text-indigo-600">
               {{ i + 1 }}
             </div>
             <h3 class="text-lg font-bold text-gray-900 mb-2">{{ step.title }}</h3>
@@ -155,32 +288,55 @@ const router = useRouter()
     <!-- CTA -->
     <section class="py-20 bg-indigo-600">
       <div class="max-w-4xl mx-auto px-4 text-center">
-        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-6">جاهز لفحص أمان مواقعك؟</h2>
-        <p class="text-lg text-indigo-100 mb-8">ابدأ بفحص مجاني واحصل على تقرير أمني شامل خلال دقائق</p>
-        <router-link to="/login" class="inline-block px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-lg text-lg">
-          ابدأ الآن
-        </router-link>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">جاهز لفحص أمان مواقعك؟</h2>
+        <p class="text-lg text-indigo-100 mb-8">سجّل الآن واحصل على فحص أمني مجاني لموقعك</p>
+        <button @click="openSignup" class="inline-block px-8 py-4 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-lg text-lg">
+          سجّل مجاناً - بدون بطاقة ائتمان
+        </button>
+        <p class="mt-6 text-sm text-indigo-200">الخطة المجانية تشمل: 5 مواقع | 10 فحوصات | 5 فئات أمنية</p>
       </div>
     </section>
 
     <!-- Footer -->
     <footer class="bg-slate-900 text-gray-400 py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-              </svg>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800">
+          <!-- Logo & description -->
+          <div>
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </div>
+              <span class="text-white font-bold text-lg">VScan-MOHESR</span>
             </div>
-            <span class="text-white font-bold">VScan-MOHESR</span>
+            <p class="text-sm leading-relaxed">منصة فحص أمان المواقع الإلكترونية للمؤسسات التعليمية والحكومية العراقية.</p>
           </div>
-          <div class="flex gap-6 text-sm">
-            <router-link to="/methodology-ar" class="hover:text-white transition-colors">معايير التقييم</router-link>
-            <router-link to="/methodology" class="hover:text-white transition-colors">Methodology</router-link>
-            <router-link to="/login" class="hover:text-white transition-colors">تسجيل الدخول</router-link>
+
+          <!-- Quick links -->
+          <div>
+            <h4 class="text-white font-semibold mb-4">روابط سريعة</h4>
+            <div class="space-y-2 text-sm">
+              <router-link to="/methodology-ar" class="block hover:text-white transition-colors">معايير التقييم</router-link>
+              <router-link to="/methodology" class="block hover:text-white transition-colors">Methodology</router-link>
+              <router-link to="/pricing" class="block hover:text-white transition-colors">الأسعار</router-link>
+              <router-link to="/login" class="block hover:text-white transition-colors">تسجيل الدخول</router-link>
+            </div>
           </div>
-          <p class="text-sm">&copy; 2026 VScan-MOHESR. جميع الحقوق محفوظة</p>
+
+          <!-- More links -->
+          <div>
+            <h4 class="text-white font-semibold mb-4">المزيد</h4>
+            <div class="space-y-2 text-sm">
+              <router-link to="/api-docs" class="block hover:text-white transition-colors">API Documentation</router-link>
+              <router-link to="/contact" class="block hover:text-white transition-colors">اتصل بنا</router-link>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-8 text-center text-sm">
+          <p>جميع الحقوق محفوظة &copy; 2026 VScan-MOHESR</p>
         </div>
       </div>
     </footer>
@@ -222,12 +378,49 @@ export default {
         { grade: 'F', range: '0-499', label: 'راسب', color: 'text-red-400' },
       ],
       steps: [
-        { title: 'أضف المواقع', desc: 'أدخل عناوين المواقع التي تريد فحصها - فردياً أو بالجملة' },
-        { title: 'ابدأ الفحص', desc: 'النظام يفحص جميع المواقع بالتوازي عبر 20 معياراً شاملاً' },
-        { title: 'استعرض النتائج', desc: 'تقرير تفصيلي لكل موقع مع درجة من 1000 وشرح كل ثغرة' },
-        { title: 'تحليل AI', desc: 'الذكاء الاصطناعي يحلل النتائج ويقترح خطوات الإصلاح للوصول لـ 1000' },
+        { title: 'سجّل حسابك', desc: 'أنشئ حساباً مجانياً في ثوانٍ' },
+        { title: 'أثبت ملكية موقعك', desc: 'أضف سجل TXT للتحقق من ملكيتك للنطاق' },
+        { title: 'ابدأ الفحص', desc: 'النظام يفحص موقعك عبر 20 معياراً شاملاً' },
+        { title: 'استلم التقرير', desc: 'تقرير PDF مفصّل مع توصيات الإصلاح وتحليل AI' },
       ],
     }
   }
 }
 </script>
+
+<style scoped>
+/* Modal transitions */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-enter-active .relative,
+.modal-leave-active .relative {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .relative {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
+}
+.modal-leave-to .relative {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
+}
+
+/* Mobile menu slide transition */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+  max-height: 500px;
+  overflow: hidden;
+}
+.slide-enter-from,
+.slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+</style>

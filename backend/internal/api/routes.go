@@ -20,7 +20,7 @@ func SetupRoutes(app *fiber.App) {
 	}
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: allowedOrigins,
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-API-Key",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
 
@@ -35,12 +35,14 @@ func SetupRoutes(app *fiber.App) {
 	api.Post("/auth/register", Register)
 	api.Get("/criteria", GetScanCriteria) // public page: scan criteria & scoring
 	api.Get("/plans", GetPlans)           // public: plan details with scan categories
+	api.Get("/docs", GetAPIDocs)          // public: API documentation
 
 	// Protected routes
 	protected := api.Group("", AuthRequired())
 
 	// Profile
 	protected.Get("/auth/profile", GetProfile)
+	protected.Put("/auth/profile", UpdateProfile)
 	protected.Get("/auth/organization", GetMyOrganization)
 	protected.Put("/auth/password", ChangePassword)
 
@@ -58,6 +60,16 @@ func SetupRoutes(app *fiber.App) {
 
 	// Score History
 	protected.Get("/targets/:id/history", GetScoreHistory)
+
+	// Domain Verification
+	protected.Post("/targets/:id/verify", InitiateVerification)
+	protected.Get("/targets/:id/verify", GetVerificationStatus)
+	protected.Put("/targets/:id/verify", CheckVerification)
+
+	// API Keys
+	protected.Post("/api-keys", GenerateAPIKey)
+	protected.Get("/api-keys", ListAPIKeys)
+	protected.Delete("/api-keys/:id", RevokeAPIKey)
 
 	// Scan Jobs
 	scans := protected.Group("/scans")

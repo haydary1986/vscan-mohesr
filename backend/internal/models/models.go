@@ -162,6 +162,18 @@ type UpgradeRequest struct {
 	Organization   Organization `json:"organization,omitempty" gorm:"foreignKey:OrganizationID"`
 }
 
+// --- Domain Verification ---
+
+type DomainVerification struct {
+	gorm.Model
+	OrganizationID  uint       `json:"organization_id" gorm:"not null"`
+	ScanTargetID    uint       `json:"scan_target_id" gorm:"not null"`
+	Domain          string     `json:"domain" gorm:"not null"`
+	VerificationKey string     `json:"verification_key" gorm:"not null"` // e.g., vscan-verify=abc123
+	IsVerified      bool       `json:"is_verified" gorm:"default:false"`
+	VerifiedAt      *time.Time `json:"verified_at"`
+}
+
 // --- Automation ---
 
 type ScheduledScan struct {

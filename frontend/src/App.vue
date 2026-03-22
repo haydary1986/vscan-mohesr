@@ -23,6 +23,7 @@ const navItems = computed(() => {
   if (!isAdmin.value) {
     items.push(
       { name: 'Upgrade', path: '/upgrade', icon: 'M5 10l7-7m0 0l7 7m-7-7v18' },
+      { name: 'API Keys', path: '/api-keys', icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' },
     )
   }
   if (isAdmin.value) {
@@ -102,10 +103,10 @@ function logout() {
       <!-- User info & Logout -->
       <div class="absolute bottom-0 right-0 left-0 p-4 border-t border-slate-700">
         <div class="flex items-center justify-between mb-3">
-          <div>
+          <router-link to="/profile" class="hover:opacity-80 transition-opacity">
             <p class="text-sm text-white">{{ user.full_name || user.username }}</p>
-            <p class="text-xs text-slate-400">{{ user.role }}</p>
-          </div>
+            <p class="text-xs text-slate-400">{{ user.role }} — Profile Settings</p>
+          </router-link>
           <button @click="logout" class="text-slate-400 hover:text-red-400 transition-colors" title="Logout">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>

@@ -16,6 +16,8 @@ import Schedules from '../views/Schedules.vue'
 import Methodology from '../views/Methodology.vue'
 import MethodologyAr from '../views/MethodologyAr.vue'
 import Pricing from '../views/Pricing.vue'
+import APIKeys from '../views/APIKeys.vue'
+import Profile from '../views/Profile.vue'
 
 const routes = [
   // Public pages
@@ -35,6 +37,8 @@ const routes = [
   { path: '/leaderboard', name: 'Leaderboard', component: Leaderboard },
   { path: '/upgrade', name: 'Upgrade', component: Upgrade },
   { path: '/schedules', name: 'Schedules', component: Schedules },
+  { path: '/api-keys', name: 'APIKeys', component: APIKeys },
+  { path: '/profile', name: 'Profile', component: Profile },
   { path: '/users', name: 'Users', component: Users, meta: { admin: true } },
   { path: '/settings', name: 'Settings', component: Settings, meta: { admin: true } },
   { path: '/subscriptions', name: 'Subscriptions', component: Subscriptions, meta: { admin: true } },
