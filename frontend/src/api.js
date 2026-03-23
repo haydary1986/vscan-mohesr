@@ -64,6 +64,9 @@ export const getPlans = () => api.get('/plans')
 export const analyzeResult = (id) => api.post(`/ai/analyze/${id}`)
 export const getAIAnalysis = (id) => api.get(`/ai/analysis/${id}`)
 
+// AI Chat
+export const chatWithAI = (data) => api.post('/ai/chat', data)
+
 // Admin: Users
 export const getUsers = () => api.get('/users')
 export const createUser = (data) => api.post('/users', data)

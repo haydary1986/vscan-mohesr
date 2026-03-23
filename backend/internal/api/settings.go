@@ -89,10 +89,17 @@ func AnalyzeScanResult(c *fiber.Ctx) error {
 		aiProvider = "deepseek"
 	}
 	if aiModel == "" {
-		if aiProvider == "deepseek" {
+		switch aiProvider {
+		case "deepseek":
 			aiModel = "deepseek-chat"
-		} else {
+		case "openai":
 			aiModel = "gpt-4o-mini"
+		case "anthropic":
+			aiModel = "claude-sonnet-4-6-20250514"
+		case "google":
+			aiModel = "gemini-2.0-flash"
+		default:
+			aiModel = "deepseek-chat"
 		}
 	}
 	if aiBaseURL == "" {
@@ -101,6 +108,10 @@ func AnalyzeScanResult(c *fiber.Ctx) error {
 			aiBaseURL = "https://api.deepseek.com/v1"
 		case "openai":
 			aiBaseURL = "https://api.openai.com/v1"
+		case "anthropic":
+			aiBaseURL = "https://api.anthropic.com/v1"
+		case "google":
+			aiBaseURL = "https://generativelanguage.googleapis.com/v1beta"
 		default:
 			aiBaseURL = "https://api.deepseek.com/v1"
 		}
@@ -110,7 +121,7 @@ func AnalyzeScanResult(c *fiber.Ctx) error {
 	prompt := buildAnalysisPrompt(&scanResult)
 
 	// Call AI API
-	analysis, err := callAIAPI(aiBaseURL, aiAPIKey, aiModel, prompt)
+	analysis, err := callAIAPI(aiBaseURL, aiAPIKey, aiModel, aiProvider, prompt)
 	if err != nil {
 		// Save failed analysis
 		aiAnalysis := models.AIAnalysis{
@@ -181,7 +192,7 @@ Write the analysis in English but make it accessible for IT administrators who m
 	return prompt
 }
 
-func callAIAPI(baseURL, apiKey, model, prompt string) (string, error) {
+func callAIAPI(baseURL, apiKey, model, provider, prompt string) (string, error) {
 	reqBody := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]string{
@@ -210,7 +221,76 @@ func callAIAPI(baseURL, apiKey, model, prompt string) (string, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
+	switch provider {
+	case "anthropic":
+		req.Header.Set("x-api-key", apiKey)
+		req.Header.Set("anthropic-version", "2023-06-01")
+	default:
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+
+	client := &http.Client{Timeout: 120 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("API request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var aiResp struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+
+	if err := json.Unmarshal(body, &aiResp); err != nil {
+		return "", fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if len(aiResp.Choices) == 0 {
+		return "", fmt.Errorf("no response from AI")
+	}
+
+	return aiResp.Choices[0].Message.Content, nil
+}
+
+func callAIChatAPI(baseURL, apiKey, model, provider string, messages []map[string]string) (string, error) {
+	reqBody := map[string]interface{}{
+		"model":       model,
+		"messages":    messages,
+		"max_tokens":  4096,
+		"temperature": 0.3,
+	}
+
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	url := baseURL + "/chat/completions"
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	switch provider {
+	case "anthropic":
+		req.Header.Set("x-api-key", apiKey)
+		req.Header.Set("anthropic-version", "2023-06-01")
+	default:
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
 
 	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Do(req)

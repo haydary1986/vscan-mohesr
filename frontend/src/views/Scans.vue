@@ -10,7 +10,7 @@ const loading = ref(true)
 const showStartForm = ref(false)
 const scanning = ref(false)
 
-const pollInterval = ref(null)
+const wsConnection = ref(null)
 
 const scanForm = ref({
   name: '',
@@ -41,11 +41,10 @@ async function runScan() {
       name: scanForm.value.name,
       target_ids: scanForm.value.selectAll ? [] : scanForm.value.target_ids,
     }
-    const { data } = await startScan(payload)
+    await startScan(payload)
     showStartForm.value = false
     scanForm.value = { name: '', target_ids: [], selectAll: true }
     await loadData()
-    pollJob(data.ID)
   } catch (e) {
     if (e.response?.status === 403 && e.response?.data?.unverified_domains) {
       const domains = e.response.data.unverified_domains.join(', ')
@@ -60,25 +59,28 @@ async function runScan() {
   }
 }
 
-function pollJob(jobId) {
-  pollInterval.value = setInterval(async () => {
-    try {
-      await loadData()
-      const job = jobs.value.find(j => j.ID === jobId)
-      if (job && (job.status === 'completed' || job.status === 'failed')) {
-        clearInterval(pollInterval.value)
-        pollInterval.value = null
+function connectWebSocket() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsUrl = `${protocol}//${window.location.host}/ws/scan`
+  wsConnection.value = new WebSocket(wsUrl)
+  wsConnection.value.onmessage = (event) => {
+    const progress = JSON.parse(event.data)
+    const jobIndex = jobs.value.findIndex(j => j.ID === progress.job_id)
+    if (jobIndex !== -1) {
+      jobs.value[jobIndex].status = progress.status
+      jobs.value[jobIndex].progress = progress
+      if (progress.status === 'completed' || progress.status === 'failed') {
+        loadData()
       }
-    } catch {
-      clearInterval(pollInterval.value)
-      pollInterval.value = null
     }
-  }, 3000)
+  }
+  wsConnection.value.onclose = () => setTimeout(connectWebSocket, 3000)
 }
 
 onBeforeUnmount(() => {
-  if (pollInterval.value) {
-    clearInterval(pollInterval.value)
+  if (wsConnection.value) {
+    wsConnection.value.onclose = null
+    wsConnection.value.close()
   }
 })
 
@@ -100,7 +102,10 @@ function formatDate(dateStr) {
   })
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+  connectWebSocket()
+})
 </script>
 
 <template>

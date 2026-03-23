@@ -18,6 +18,7 @@ import MethodologyAr from '../views/MethodologyAr.vue'
 import Pricing from '../views/Pricing.vue'
 import APIKeys from '../views/APIKeys.vue'
 import Profile from '../views/Profile.vue'
+import AIChat from '../views/AIChat.vue'
 
 const routes = [
   // Public pages
@@ -39,6 +40,7 @@ const routes = [
   { path: '/schedules', name: 'Schedules', component: Schedules },
   { path: '/api-keys', name: 'APIKeys', component: APIKeys },
   { path: '/profile', name: 'Profile', component: Profile },
+  { path: '/ai-chat', name: 'AIChat', component: AIChat },
   { path: '/users', name: 'Users', component: Users, meta: { admin: true } },
   { path: '/settings', name: 'Settings', component: Settings, meta: { admin: true } },
   { path: '/subscriptions', name: 'Subscriptions', component: Subscriptions, meta: { admin: true } },

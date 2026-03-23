@@ -15,6 +15,9 @@ const message = ref('')
 const providers = [
   { value: 'deepseek', label: 'DeepSeek', defaultModel: 'deepseek-chat', defaultUrl: 'https://api.deepseek.com/v1' },
   { value: 'openai', label: 'OpenAI', defaultModel: 'gpt-4o-mini', defaultUrl: 'https://api.openai.com/v1' },
+  { value: 'anthropic', label: 'Anthropic Claude', defaultModel: 'claude-sonnet-4-6-20250514', defaultUrl: 'https://api.anthropic.com/v1' },
+  { value: 'google', label: 'Google Gemini', defaultModel: 'gemini-2.0-flash', defaultUrl: 'https://generativelanguage.googleapis.com/v1beta' },
+  { value: 'ollama', label: 'Ollama (Local)', defaultModel: 'llama3', defaultUrl: 'http://localhost:11434/v1' },
   { value: 'custom', label: 'Custom (OpenAI-compatible)', defaultModel: '', defaultUrl: '' },
 ]
 

@@ -145,6 +145,10 @@ type CheckResult struct {
 	Weight       float64 `json:"weight"`
 	Details      string  `json:"details"`
 	Severity     string  `json:"severity"`
+	OWASP        string  `json:"owasp"`
+	OWASPName    string  `json:"owasp_name"`
+	CWE          string  `json:"cwe"`
+	CWEName      string  `json:"cwe_name"`
 }
 
 // --- Upgrade Requests ---

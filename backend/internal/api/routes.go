@@ -87,6 +87,9 @@ func SetupRoutes(app *fiber.App) {
 	protected.Post("/ai/analyze/:id", AnalyzeScanResult)
 	protected.Get("/ai/analysis/:id", GetAIAnalysis)
 
+	// AI Chat
+	protected.Post("/ai/chat", ChatWithAI)
+
 	// Dashboard & Leaderboard
 	protected.Get("/dashboard", GetDashboardStats)
 	protected.Get("/leaderboard", GetLeaderboard)

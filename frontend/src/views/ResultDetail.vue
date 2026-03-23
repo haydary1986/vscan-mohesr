@@ -396,6 +396,8 @@ onMounted(async () => {
                     <span :class="['px-2 py-0.5 rounded text-xs', getSeverityColor(check.severity)]">
                       {{ check.severity }}
                     </span>
+                    <span v-if="check.owasp" class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-mono">{{ check.owasp }}</span>
+                    <span v-if="check.cwe" class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-mono">{{ check.cwe }}</span>
                     <span :class="['font-bold', getScoreColor(check.score)]">{{ Math.round(check.score) }}/1000</span>
                   </div>
                 </div>

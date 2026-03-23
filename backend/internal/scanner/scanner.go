@@ -1,12 +1,15 @@
 package scanner
 
 import (
+	"fmt"
 	"math"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"vscan-mohesr/internal/config"
 	"vscan-mohesr/internal/models"
+	"vscan-mohesr/internal/ws"
 )
 
 // MaxScore is the maximum score for any check (1000-point scale)
@@ -167,6 +170,7 @@ func (e *Engine) RunScan(job *models.ScanJob) {
 
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, 5)
+	var completedCount int64
 
 	for i := range results {
 		wg.Add(1)
@@ -175,10 +179,30 @@ func (e *Engine) RunScan(job *models.ScanJob) {
 			defer wg.Done()
 			defer func() { <-sem }()
 			e.scanTarget(result)
+
+			current := atomic.AddInt64(&completedCount, 1)
+			ws.DefaultHub.Broadcast(ws.ScanProgress{
+				JobID:      job.ID,
+				Status:     "running",
+				Total:      len(results),
+				Completed:  int(current),
+				Percent:    float64(current) / float64(len(results)) * 100,
+				CurrentURL: result.ScanTarget.URL,
+				Message:    fmt.Sprintf("Completed %d/%d", current, len(results)),
+			})
 		}(&results[i])
 	}
 
 	wg.Wait()
+
+	ws.DefaultHub.Broadcast(ws.ScanProgress{
+		JobID:     job.ID,
+		Status:    "completed",
+		Total:     len(results),
+		Completed: len(results),
+		Percent:   100,
+		Message:   "Scan completed",
+	})
 
 	ended := time.Now()
 	job.Status = "completed"
@@ -201,6 +225,16 @@ func (e *Engine) scanTarget(result *models.ScanResult) {
 			checks[i].ScanResultID = result.ID
 		}
 		allChecks = append(allChecks, checks...)
+	}
+
+	// Populate OWASP/CWE mappings
+	for i := range allChecks {
+		if m := GetOWASPMapping(allChecks[i].CheckName); m != nil {
+			allChecks[i].OWASP = m.OWASP
+			allChecks[i].OWASPName = m.OWASPName
+			allChecks[i].CWE = m.CWE
+			allChecks[i].CWEName = m.CWEName
+		}
 	}
 
 	// Save all checks
