@@ -51,7 +51,7 @@ var PlanScanners = map[string][]string{
 		"mixed_content",
 		"seo",
 	},
-	"pro": { // 18 categories - advanced security
+	"pro": { // 19 categories - advanced security
 		"ssl",
 		"headers",
 		"cookies",
@@ -70,8 +70,9 @@ var PlanScanners = map[string][]string{
 		"third_party",
 		"js_libraries",
 		"wordpress",
+		"xss",
 	},
-	"enterprise": { // 21 categories - full scan
+	"enterprise": { // 22 categories - full scan
 		"ssl",
 		"headers",
 		"cookies",
@@ -93,6 +94,7 @@ var PlanScanners = map[string][]string{
 		"third_party",
 		"js_libraries",
 		"wordpress",
+		"xss",
 	},
 }
 
@@ -102,7 +104,7 @@ type Engine struct {
 	plan     string
 }
 
-// allScanners returns all 21 registered scanners
+// allScanners returns all 22 registered scanners
 func allScanners() []Scanner {
 	return []Scanner{
 		NewSSLScanner(),
@@ -126,6 +128,7 @@ func allScanners() []Scanner {
 		NewThirdPartyScanner(),
 		NewJSLibScanner(),
 		NewWordPressScanner(),
+		NewXSSScanner(),
 	}
 }
 

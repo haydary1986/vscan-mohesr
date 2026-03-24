@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getScanResult, analyzeResult, getAIAnalysis, downloadReport, getScoreHistory, getComplianceReport, getRemediationGuide } from '../api'
+import { getScanResult, analyzeResult, getAIAnalysis, downloadReport, exportSARIF, getUpgradeSuggestions, getScoreHistory, getComplianceReport, getRemediationGuide } from '../api'
 import { categoryInfo, getCheckExplanation } from '../data/securityKnowledge'
 import { Radar, Line } from 'vue-chartjs'
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, CategoryScale, LinearScale } from 'chart.js'
@@ -30,6 +30,14 @@ const remediationGuide = ref(null)
 const remediationLoading = ref(false)
 const remediationCheckName = ref('')
 const activeServerType = ref('apache')
+
+// SARIF export state
+const sarifLoading = ref(false)
+
+// Upgrade suggestions state
+const upgradeSuggestions = ref([])
+const upgradesLoading = ref(false)
+const copiedUpgrade = ref(null)
 
 const historyChartData = computed(() => {
   if (scoreHistory.value.length < 2) return null
@@ -86,6 +94,51 @@ async function downloadPDF() {
   } finally {
     pdfLoading.value = false
   }
+}
+
+async function downloadSARIF() {
+  sarifLoading.value = true
+  try {
+    const { data } = await exportSARIF(route.params.id)
+    const url = window.URL.createObjectURL(new Blob([data], { type: 'application/sarif+json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `vscan-report-${route.params.id}.sarif`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to download SARIF report')
+  } finally {
+    sarifLoading.value = false
+  }
+}
+
+function getUpgradeCommand(suggestion) {
+  const lib = suggestion.library.toLowerCase()
+  if (lib === 'wordpress' || lib === 'elementor') {
+    return `wp core update  # Update to ${suggestion.safe_version}`
+  }
+  return `npm install ${lib}@${suggestion.safe_version}`
+}
+
+function copyUpgradeCommand(suggestion) {
+  const cmd = getUpgradeCommand(suggestion)
+  navigator.clipboard.writeText(cmd).then(() => {
+    copiedUpgrade.value = suggestion.library
+    setTimeout(() => { copiedUpgrade.value = null }, 2000)
+  }).catch(() => {})
+}
+
+function getUpgradeSeverityColor(severity) {
+  const colors = {
+    critical: 'bg-red-100 text-red-700 border-red-200',
+    high: 'bg-orange-100 text-orange-700 border-orange-200',
+    medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    low: 'bg-blue-100 text-blue-700 border-blue-200',
+  }
+  return colors[severity] || 'bg-gray-100 text-gray-700 border-gray-200'
 }
 
 const categoryLabels = {
@@ -364,6 +417,13 @@ onMounted(async () => {
       compliance.value = compRes.data || null
     } catch { /* no compliance data available */ }
     complianceLoading.value = false
+    // Load upgrade suggestions
+    upgradesLoading.value = true
+    try {
+      const upgRes = await getUpgradeSuggestions(route.params.id)
+      upgradeSuggestions.value = upgRes.data || []
+    } catch { /* no upgrade data available */ }
+    upgradesLoading.value = false
   } catch (e) {
     console.error('Failed to load result:', e)
   } finally {
@@ -408,6 +468,13 @@ onMounted(async () => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
               {{ pdfLoading ? 'Generating...' : 'Download PDF' }}
+            </button>
+            <button @click="downloadSARIF" :disabled="sarifLoading"
+              class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              {{ sarifLoading ? 'Exporting...' : 'SARIF Export' }}
             </button>
             <button @click="runAIAnalysis" :disabled="aiLoading"
               class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2 text-sm">
@@ -511,6 +578,85 @@ onMounted(async () => {
       </div>
       <div v-else-if="complianceLoading" class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6 flex justify-center">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+
+      <!-- Smart Upgrade Suggestions -->
+      <div v-if="upgradeSuggestions.length" class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+            <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Smart Upgrade Suggestions</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ upgradeSuggestions.length }} libraries need attention</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-for="suggestion in upgradeSuggestions" :key="suggestion.library"
+            class="border border-gray-200 dark:border-slate-700 rounded-xl p-4 hover:shadow-md transition-shadow">
+            <!-- Header: Library name + severity badge -->
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-semibold text-gray-900 dark:text-white text-base">{{ suggestion.library }}</h4>
+              <span :class="['px-2.5 py-0.5 rounded-full text-xs font-semibold border', getUpgradeSeverityColor(suggestion.severity)]">
+                {{ suggestion.severity.toUpperCase() }}
+              </span>
+            </div>
+
+            <!-- Version info: current -> safe -->
+            <div class="flex items-center gap-2 mb-3 text-sm">
+              <span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded font-mono text-xs">
+                {{ suggestion.current_version || 'detected' }}
+              </span>
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+              </svg>
+              <span class="px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded font-mono text-xs">
+                {{ suggestion.safe_version }}
+              </span>
+              <span v-if="suggestion.latest_version !== suggestion.safe_version" class="text-xs text-gray-400 dark:text-gray-500">
+                (latest: {{ suggestion.latest_version }})
+              </span>
+            </div>
+
+            <!-- Description -->
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">{{ suggestion.description }}</p>
+
+            <!-- CVE badges -->
+            <div v-if="suggestion.cves && suggestion.cves.length" class="flex flex-wrap gap-1.5 mb-3">
+              <span v-for="cve in suggestion.cves" :key="cve"
+                class="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded text-xs font-mono">
+                {{ cve }}
+              </span>
+            </div>
+
+            <!-- Breaking changes warning -->
+            <div v-if="suggestion.breaking" class="flex items-center gap-2 mb-3 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <span class="text-xs text-amber-700 dark:text-amber-400 font-medium">Potential breaking changes - test thoroughly</span>
+            </div>
+
+            <!-- Copy upgrade command -->
+            <button @click="copyUpgradeCommand(suggestion)"
+              class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors font-mono">
+              <svg v-if="copiedUpgrade !== suggestion.library" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <svg v-else class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span v-if="copiedUpgrade === suggestion.library" class="text-green-600">Copied!</span>
+              <span v-else>{{ getUpgradeCommand(suggestion) }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="upgradesLoading" class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6 flex justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

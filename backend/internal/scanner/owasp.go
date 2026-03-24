@@ -525,6 +525,35 @@ var CheckOWASPMap = map[string]OWASPMapping{
 		CWE: "CWE-209", CWEName: "Generation of Error Message Containing Sensitive Information",
 		CVSSBase: "Critical",
 	},
+
+	// =========================================================================
+	// XSS Vulnerability Scanner
+	// =========================================================================
+	"Reflected XSS Detection": {
+		OWASP: "A03:2021", OWASPName: "Injection",
+		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
+		CVSSBase: "High",
+	},
+	"DOM-Based XSS Indicators": {
+		OWASP: "A03:2021", OWASPName: "Injection",
+		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
+		CVSSBase: "High",
+	},
+	"Input Sanitization Check": {
+		OWASP: "A03:2021", OWASPName: "Injection",
+		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
+		CVSSBase: "High",
+	},
+	"Content-Type & X-XSS-Protection Headers": {
+		OWASP: "A03:2021", OWASPName: "Injection",
+		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
+		CVSSBase: "Medium",
+	},
+	"URL Parameter Reflection Analysis": {
+		OWASP: "A03:2021", OWASPName: "Injection",
+		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
+		CVSSBase: "High",
+	},
 }
 
 // GetOWASPMapping returns the OWASP/CWE mapping for a given check name, or nil if not found.

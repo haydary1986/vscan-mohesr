@@ -119,6 +119,13 @@ var CheckConfidence = map[string]int{
 	"Outdated jQuery Detection":  85,
 	"Known Vulnerable Libraries": 75,
 	"Inline Script Analysis":     70,
+
+	// XSS Vulnerability Scanner - varies (canary-based heuristic)
+	"Reflected XSS Detection":                80,
+	"DOM-Based XSS Indicators":               70,
+	"Input Sanitization Check":               75,
+	"Content-Type & X-XSS-Protection Headers": 100,
+	"URL Parameter Reflection Analysis":       75,
 }
 
 func GetConfidence(checkName string) int {

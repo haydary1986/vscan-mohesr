@@ -82,7 +82,9 @@ func SetupRoutes(app *fiber.App) {
 	results := protected.Group("/results")
 	results.Get("/:id", GetScanResult)
 	results.Get("/:id/pdf", GeneratePDFReport)
+	results.Get("/:id/sarif", ExportSARIF)
 	results.Get("/:id/compliance", GetComplianceReport)
+	results.Get("/:id/upgrades", GetUpgradeSuggestions)
 
 	// AI Analysis
 	protected.Post("/ai/analyze/:id", AnalyzeScanResult)

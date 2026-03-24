@@ -50,6 +50,8 @@ export const deleteScanJob = (id) => api.delete(`/scans/${id}`)
 // Results
 export const getScanResult = (id) => api.get(`/results/${id}`)
 export const downloadReport = (id) => api.get(`/results/${id}/pdf`, { responseType: 'blob' })
+export const exportSARIF = (id) => api.get(`/results/${id}/sarif`, { responseType: 'blob' })
+export const getUpgradeSuggestions = (id) => api.get(`/results/${id}/upgrades`)
 export const getScoreHistory = (id) => api.get(`/targets/${id}/history`)
 
 // Dashboard & Leaderboard
