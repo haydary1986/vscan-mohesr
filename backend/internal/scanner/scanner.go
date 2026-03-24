@@ -9,6 +9,7 @@ import (
 
 	"vscan-mohesr/internal/config"
 	"vscan-mohesr/internal/models"
+	"vscan-mohesr/internal/services"
 	"vscan-mohesr/internal/ws"
 )
 
@@ -50,7 +51,7 @@ var PlanScanners = map[string][]string{
 		"mixed_content",
 		"seo",
 	},
-	"pro": { // 17 categories - advanced security
+	"pro": { // 18 categories - advanced security
 		"ssl",
 		"headers",
 		"cookies",
@@ -68,8 +69,9 @@ var PlanScanners = map[string][]string{
 		"seo",
 		"third_party",
 		"js_libraries",
+		"wordpress",
 	},
-	"enterprise": { // 20 categories - full scan
+	"enterprise": { // 21 categories - full scan
 		"ssl",
 		"headers",
 		"cookies",
@@ -90,6 +92,7 @@ var PlanScanners = map[string][]string{
 		"seo",
 		"third_party",
 		"js_libraries",
+		"wordpress",
 	},
 }
 
@@ -99,7 +102,7 @@ type Engine struct {
 	plan     string
 }
 
-// allScanners returns all 20 registered scanners
+// allScanners returns all 21 registered scanners
 func allScanners() []Scanner {
 	return []Scanner{
 		NewSSLScanner(),
@@ -122,6 +125,7 @@ func allScanners() []Scanner {
 		NewSEOScanner(),
 		NewThirdPartyScanner(),
 		NewJSLibScanner(),
+		NewWordPressScanner(),
 	}
 }
 
@@ -208,6 +212,11 @@ func (e *Engine) RunScan(job *models.ScanJob) {
 	job.Status = "completed"
 	job.EndedAt = &ended
 	config.DB.Save(job)
+
+	// Send webhook notifications
+	var completedResults []models.ScanResult
+	config.DB.Where("scan_job_id = ?", job.ID).Preload("ScanTarget").Find(&completedResults)
+	services.SendScanCompletedWebhooks(job, completedResults)
 }
 
 func (e *Engine) scanTarget(result *models.ScanResult) {
@@ -235,6 +244,11 @@ func (e *Engine) scanTarget(result *models.ScanResult) {
 			allChecks[i].CWE = m.CWE
 			allChecks[i].CWEName = m.CWEName
 		}
+	}
+
+	// Populate confidence scores
+	for i := range allChecks {
+		allChecks[i].Confidence = GetConfidence(allChecks[i].CheckName)
 	}
 
 	// Save all checks

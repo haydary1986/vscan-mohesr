@@ -82,6 +82,7 @@ func SetupRoutes(app *fiber.App) {
 	results := protected.Group("/results")
 	results.Get("/:id", GetScanResult)
 	results.Get("/:id/pdf", GeneratePDFReport)
+	results.Get("/:id/compliance", GetComplianceReport)
 
 	// AI Analysis
 	protected.Post("/ai/analyze/:id", AnalyzeScanResult)
@@ -93,6 +94,30 @@ func SetupRoutes(app *fiber.App) {
 	// Dashboard & Leaderboard
 	protected.Get("/dashboard", GetDashboardStats)
 	protected.Get("/leaderboard", GetLeaderboard)
+	protected.Get("/compare", CompareScanResults)
+
+	// Remediation Guides
+	protected.Get("/remediation", GetRemediationGuide)
+
+	// Tags
+	tags := protected.Group("/tags")
+	tags.Get("/", GetTags)
+	tags.Post("/", CreateTag)
+	tags.Delete("/:id", DeleteTag)
+	tags.Post("/assign", TagTarget)
+	tags.Delete("/assign/:target_id/:tag_id", UntagTarget)
+	tags.Get("/:id/targets", GetTargetsByTag)
+
+	// Target Tags (per target)
+	protected.Get("/targets/:id/tags", GetTargetTags)
+
+	// Webhooks
+	webhooks := protected.Group("/webhooks")
+	webhooks.Get("/", GetWebhooks)
+	webhooks.Post("/", CreateWebhook)
+	webhooks.Put("/:id", UpdateWebhook)
+	webhooks.Delete("/:id", DeleteWebhook)
+	webhooks.Post("/:id/test", TestWebhook)
 
 	// Scheduled Scans
 	schedules := protected.Group("/schedules")

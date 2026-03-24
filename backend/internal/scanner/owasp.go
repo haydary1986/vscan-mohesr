@@ -491,6 +491,40 @@ var CheckOWASPMap = map[string]OWASPMapping{
 		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
 		CVSSBase: "Medium",
 	},
+
+	// =========================================================================
+	// WordPress Scanner
+	// =========================================================================
+	"WordPress Version": {
+		OWASP: "A06:2021", OWASPName: "Vulnerable and Outdated Components",
+		CWE: "CWE-1104", CWEName: "Use of Unmaintained Third Party Components",
+		CVSSBase: "High",
+	},
+	"WP Login Page Exposure": {
+		OWASP: "A07:2021", OWASPName: "Identification and Authentication Failures",
+		CWE: "CWE-307", CWEName: "Improper Restriction of Excessive Authentication Attempts",
+		CVSSBase: "Medium",
+	},
+	"WP XML-RPC Exposure": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-749", CWEName: "Exposed Dangerous Method or Function",
+		CVSSBase: "Critical",
+	},
+	"WP REST API User Enumeration": {
+		OWASP: "A01:2021", OWASPName: "Broken Access Control",
+		CWE: "CWE-200", CWEName: "Exposure of Sensitive Information to an Unauthorized Actor",
+		CVSSBase: "Medium",
+	},
+	"WP Readme/License Exposure": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-200", CWEName: "Exposure of Sensitive Information to an Unauthorized Actor",
+		CVSSBase: "Low",
+	},
+	"WP Debug Mode": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-209", CWEName: "Generation of Error Message Containing Sensitive Information",
+		CVSSBase: "Critical",
+	},
 }
 
 // GetOWASPMapping returns the OWASP/CWE mapping for a given check name, or nil if not found.

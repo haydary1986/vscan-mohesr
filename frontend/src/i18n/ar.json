@@ -52,6 +52,8 @@
     "login": "تسجيل الدخول",
     "register": "إنشاء حساب",
     "aiChat": "مساعد الذكاء",
+    "compare": "المقارنة",
+    "webhooks": "الإشعارات",
     "logout": "تسجيل الخروج"
   },
   "landing": {
@@ -299,6 +301,38 @@
     "noKeys": "لا توجد مفاتيح API",
     "quickRef": "مرجع سريع للـ API",
     "upgradeNeeded": "هذه الميزة متاحة فقط لخطة Pro و Enterprise"
+  },
+  "compare": {
+    "title": "مقارنة الفحوصات",
+    "subtitle": "قارن نتائج الفحص قبل وبعد جنباً إلى جنب",
+    "selectOld": "اختر نتيجة الفحص القديمة",
+    "selectNew": "اختر نتيجة الفحص الجديدة",
+    "compareBtn": "قارن",
+    "scoreChange": "تغيير الدرجة",
+    "improved": "تحسّن",
+    "declined": "تراجع",
+    "unchanged": "بدون تغيير",
+    "totalChecks": "إجمالي الفحوصات",
+    "categoryComparison": "مقارنة الفئات",
+    "checkComparison": "مقارنة الفحوصات",
+    "old": "قديم",
+    "new": "جديد",
+    "change": "التغيير",
+    "filterAll": "الكل",
+    "filterImproved": "تحسّن",
+    "filterDeclined": "تراجع",
+    "filterUnchanged": "بدون تغيير",
+    "selectResults": "اختر نتيجتي فحص للمقارنة",
+    "noResults": "لا توجد نتائج فحص متاحة"
+  },
+  "compliance": {
+    "title": "التوافق مع OWASP Top 10",
+    "overallCompliance": "نسبة التوافق الإجمالية",
+    "totalChecks": "إجمالي الفحوصات",
+    "passed": "ناجح",
+    "checksPassed": "فحوصات ناجحة",
+    "showChecks": "عرض الفحوصات",
+    "hideChecks": "إخفاء الفحوصات"
   },
   "grades": {
     "aPlus": "ممتاز",

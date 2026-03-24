@@ -19,6 +19,8 @@ import Pricing from '../views/Pricing.vue'
 import APIKeys from '../views/APIKeys.vue'
 import Profile from '../views/Profile.vue'
 import AIChat from '../views/AIChat.vue'
+import Compare from '../views/Compare.vue'
+import Webhooks from '../views/Webhooks.vue'
 
 const routes = [
   // Public pages
@@ -41,6 +43,8 @@ const routes = [
   { path: '/api-keys', name: 'APIKeys', component: APIKeys },
   { path: '/profile', name: 'Profile', component: Profile },
   { path: '/ai-chat', name: 'AIChat', component: AIChat },
+  { path: '/compare', name: 'Compare', component: Compare },
+  { path: '/webhooks', name: 'Webhooks', component: Webhooks },
   { path: '/users', name: 'Users', component: Users, meta: { admin: true } },
   { path: '/settings', name: 'Settings', component: Settings, meta: { admin: true } },
   { path: '/subscriptions', name: 'Subscriptions', component: Subscriptions, meta: { admin: true } },

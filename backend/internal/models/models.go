@@ -149,6 +149,7 @@ type CheckResult struct {
 	OWASPName    string  `json:"owasp_name"`
 	CWE          string  `json:"cwe"`
 	CWEName      string  `json:"cwe_name"`
+	Confidence   int     `json:"confidence" gorm:"default:80"` // 0-100 confidence level
 }
 
 // --- Upgrade Requests ---
@@ -201,4 +202,34 @@ type NotificationPreference struct {
 	ScanComplete      bool `json:"scan_complete" gorm:"default:true"`
 	CriticalVulnFound bool `json:"critical_vuln_found" gorm:"default:true"`
 	WeeklySummary     bool `json:"weekly_summary" gorm:"default:false"`
+}
+
+// --- Scan Tags ---
+
+type ScanTag struct {
+	gorm.Model
+	OrganizationID uint   `json:"organization_id"`
+	Name           string `json:"name" gorm:"not null"`
+	Color          string `json:"color" gorm:"default:#6366f1"` // hex color
+}
+
+type TargetTag struct {
+	ID           uint    `json:"id" gorm:"primarykey;autoIncrement"`
+	ScanTargetID uint    `json:"scan_target_id"`
+	ScanTagID    uint    `json:"scan_tag_id"`
+	ScanTag      ScanTag `json:"scan_tag" gorm:"foreignKey:ScanTagID"`
+}
+
+// --- Webhooks ---
+
+type Webhook struct {
+	gorm.Model
+	OrganizationID uint   `json:"organization_id"`
+	Name           string `json:"name" gorm:"not null"`
+	Type           string `json:"type" gorm:"not null"`                 // slack, telegram, discord, custom
+	URL            string `json:"url" gorm:"not null"`
+	Secret         string `json:"secret"`                               // for telegram bot token or custom auth
+	IsActive       bool   `json:"is_active" gorm:"default:true"`
+	Events         string `json:"events" gorm:"default:scan_completed"` // comma-separated: scan_completed, score_drop, critical_found
+	MinSeverity    string `json:"min_severity" gorm:"default:all"`      // all, critical, high, medium
 }

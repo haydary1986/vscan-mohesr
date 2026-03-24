@@ -551,6 +551,274 @@ func GetScoreHistory(c *fiber.Ctx) error {
 	return c.JSON(history)
 }
 
+// --- Scan Comparison ---
+
+func CompareScanResults(c *fiber.Ctx) error {
+	oldID := c.Query("old")
+	newID := c.Query("new")
+
+	if oldID == "" || newID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Both 'old' and 'new' result IDs are required"})
+	}
+
+	var oldResult, newResult models.ScanResult
+	if err := config.DB.Preload("ScanTarget").First(&oldResult, oldID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Old result not found"})
+	}
+	if err := config.DB.Preload("ScanTarget").First(&newResult, newID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "New result not found"})
+	}
+
+	var oldChecks, newChecks []models.CheckResult
+	config.DB.Where("scan_result_id = ?", oldResult.ID).Find(&oldChecks)
+	config.DB.Where("scan_result_id = ?", newResult.ID).Find(&newChecks)
+
+	// Build category scores for both
+	type CategoryComparison struct {
+		Category string  `json:"category"`
+		OldScore float64 `json:"old_score"`
+		NewScore float64 `json:"new_score"`
+		Change   float64 `json:"change"`
+		Status   string  `json:"status"` // improved, declined, unchanged
+	}
+
+	type CheckComparison struct {
+		CheckName string  `json:"check_name"`
+		Category  string  `json:"category"`
+		OldScore  float64 `json:"old_score"`
+		NewScore  float64 `json:"new_score"`
+		OldStatus string  `json:"old_status"`
+		NewStatus string  `json:"new_status"`
+		Change    float64 `json:"change"`
+		Status    string  `json:"status"`
+	}
+
+	// Calculate category scores
+	calcCatScores := func(checks []models.CheckResult) map[string]float64 {
+		catTotal := map[string]float64{}
+		catWeight := map[string]float64{}
+		for _, ch := range checks {
+			catTotal[ch.Category] += ch.Score * ch.Weight
+			catWeight[ch.Category] += ch.Weight
+		}
+		result := map[string]float64{}
+		for cat, total := range catTotal {
+			if catWeight[cat] > 0 {
+				result[cat] = total / catWeight[cat]
+			}
+		}
+		return result
+	}
+
+	oldCatScores := calcCatScores(oldChecks)
+	newCatScores := calcCatScores(newChecks)
+
+	// All categories
+	allCats := map[string]bool{}
+	for cat := range oldCatScores {
+		allCats[cat] = true
+	}
+	for cat := range newCatScores {
+		allCats[cat] = true
+	}
+
+	var categories []CategoryComparison
+	for cat := range allCats {
+		oldScore := oldCatScores[cat]
+		newScore := newCatScores[cat]
+		change := newScore - oldScore
+		status := "unchanged"
+		if change > 10 {
+			status = "improved"
+		}
+		if change < -10 {
+			status = "declined"
+		}
+		categories = append(categories, CategoryComparison{
+			Category: cat, OldScore: oldScore, NewScore: newScore, Change: change, Status: status,
+		})
+	}
+
+	// Check-level comparison
+	oldCheckMap := map[string]models.CheckResult{}
+	for _, ch := range oldChecks {
+		oldCheckMap[ch.CheckName] = ch
+	}
+
+	var checks []CheckComparison
+	for _, newCh := range newChecks {
+		oldCh, exists := oldCheckMap[newCh.CheckName]
+		oldScore := 0.0
+		oldStatus := "N/A"
+		if exists {
+			oldScore = oldCh.Score
+			oldStatus = oldCh.Status
+		}
+		change := newCh.Score - oldScore
+		status := "unchanged"
+		if change > 50 {
+			status = "improved"
+		}
+		if change < -50 {
+			status = "declined"
+		}
+		checks = append(checks, CheckComparison{
+			CheckName: newCh.CheckName, Category: newCh.Category,
+			OldScore: oldScore, NewScore: newCh.Score,
+			OldStatus: oldStatus, NewStatus: newCh.Status,
+			Change: change, Status: status,
+		})
+	}
+
+	// Summary
+	improved := 0
+	declined := 0
+	for _, ch := range checks {
+		if ch.Status == "improved" {
+			improved++
+		}
+		if ch.Status == "declined" {
+			declined++
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"old_result": fiber.Map{
+			"id": oldResult.ID, "score": oldResult.OverallScore,
+			"date": oldResult.EndedAt, "target": oldResult.ScanTarget,
+		},
+		"new_result": fiber.Map{
+			"id": newResult.ID, "score": newResult.OverallScore,
+			"date": newResult.EndedAt, "target": newResult.ScanTarget,
+		},
+		"score_change": newResult.OverallScore - oldResult.OverallScore,
+		"categories":   categories,
+		"checks":       checks,
+		"summary": fiber.Map{
+			"total_checks": len(checks),
+			"improved":     improved,
+			"declined":     declined,
+			"unchanged":    len(checks) - improved - declined,
+		},
+	})
+}
+
+// --- Compliance Report ---
+
+func GetComplianceReport(c *fiber.Ctx) error {
+	resultID := c.Params("id")
+
+	var checks []models.CheckResult
+	config.DB.Where("scan_result_id = ?", resultID).Find(&checks)
+
+	// Group by OWASP category
+	type OWASPCompliance struct {
+		ID           string      `json:"id"`
+		Name         string      `json:"name"`
+		TotalChecks  int         `json:"total_checks"`
+		PassedChecks int         `json:"passed_checks"`
+		FailedChecks int         `json:"failed_checks"`
+		WarnChecks   int         `json:"warn_checks"`
+		Compliance   float64     `json:"compliance"`
+		Severity     string      `json:"severity"`
+		Checks       []fiber.Map `json:"checks"`
+	}
+
+	owaspMap := map[string]*OWASPCompliance{}
+
+	for _, ch := range checks {
+		if ch.OWASP == "" {
+			continue
+		}
+
+		if _, exists := owaspMap[ch.OWASP]; !exists {
+			owaspMap[ch.OWASP] = &OWASPCompliance{
+				ID: ch.OWASP, Name: ch.OWASPName,
+			}
+		}
+
+		entry := owaspMap[ch.OWASP]
+		entry.TotalChecks++
+
+		switch ch.Status {
+		case "pass":
+			entry.PassedChecks++
+		case "fail":
+			entry.FailedChecks++
+		case "warn", "warning":
+			entry.WarnChecks++
+		}
+
+		entry.Checks = append(entry.Checks, fiber.Map{
+			"name": ch.CheckName, "score": ch.Score,
+			"status": ch.Status, "severity": ch.Severity,
+			"cwe": ch.CWE, "cwe_name": ch.CWEName,
+		})
+	}
+
+	// Calculate compliance percentages
+	var results []OWASPCompliance
+	totalCompliant := 0
+	totalChecks := 0
+
+	for _, entry := range owaspMap {
+		if entry.TotalChecks > 0 {
+			entry.Compliance = float64(entry.PassedChecks) / float64(entry.TotalChecks) * 100
+		}
+		if entry.FailedChecks > 0 {
+			entry.Severity = "high"
+		}
+		if entry.PassedChecks == entry.TotalChecks {
+			entry.Severity = "low"
+		}
+
+		totalCompliant += entry.PassedChecks
+		totalChecks += entry.TotalChecks
+		results = append(results, *entry)
+	}
+
+	overallCompliance := 0.0
+	if totalChecks > 0 {
+		overallCompliance = float64(totalCompliant) / float64(totalChecks) * 100
+	}
+
+	return c.JSON(fiber.Map{
+		"overall_compliance": overallCompliance,
+		"total_checks":      totalChecks,
+		"total_passed":      totalCompliant,
+		"owasp_categories":  results,
+	})
+}
+
+// --- Remediation Guide ---
+
+func GetRemediationGuide(c *fiber.Ctx) error {
+	checkName := c.Query("check")
+	serverType := c.Query("server", "all")
+
+	if checkName == "" {
+		// Return list of all available remediations
+		var keys []string
+		for k := range scanner.RemediationDB {
+			keys = append(keys, k)
+		}
+		return c.JSON(fiber.Map{"available_checks": keys})
+	}
+
+	guide, exists := scanner.RemediationDB[checkName]
+	if !exists {
+		return c.Status(404).JSON(fiber.Map{"error": "No remediation guide found for this check"})
+	}
+
+	if serverType != "all" {
+		if specific, ok := guide.Guides[serverType]; ok {
+			guide.Guides = map[string]string{serverType: specific}
+		}
+	}
+
+	return c.JSON(guide)
+}
+
 func scoreToGrade(score float64) string {
 	switch {
 	case score >= 900:

@@ -38,6 +38,9 @@ func InitDatabase() {
 		&models.NotificationPreference{},
 		&models.UpgradeRequest{},
 		&models.DomainVerification{},
+		&models.ScanTag{},
+		&models.TargetTag{},
+		&models.Webhook{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)

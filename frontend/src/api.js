@@ -56,6 +56,10 @@ export const getScoreHistory = (id) => api.get(`/targets/${id}/history`)
 export const getDashboardStats = () => api.get('/dashboard')
 export const getLeaderboard = () => api.get('/leaderboard')
 
+// Comparison & Compliance
+export const compareScanResults = (oldId, newId) => api.get(`/compare?old=${oldId}&new=${newId}`)
+export const getComplianceReport = (id) => api.get(`/results/${id}/compliance`)
+
 // Public: Scan Criteria / Methodology / Plans
 export const getScanCriteria = () => api.get('/criteria')
 export const getPlans = () => api.get('/plans')
@@ -100,5 +104,24 @@ export const checkVerification = (targetId) => api.put(`/targets/${targetId}/ver
 export const generateAPIKey = (data) => api.post('/api-keys', data)
 export const listAPIKeys = () => api.get('/api-keys')
 export const revokeAPIKey = (id) => api.delete(`/api-keys/${id}`)
+
+// Webhooks
+export const getWebhooks = () => api.get('/webhooks')
+export const createWebhook = (data) => api.post('/webhooks', data)
+export const updateWebhook = (id, data) => api.put(`/webhooks/${id}`, data)
+export const deleteWebhook = (id) => api.delete(`/webhooks/${id}`)
+export const testWebhook = (id) => api.post(`/webhooks/${id}/test`)
+
+// Remediation Guides
+export const getRemediationGuide = (checkName, serverType) => api.get(`/remediation?check=${encodeURIComponent(checkName)}&server=${serverType || 'all'}`)
+
+// Tags
+export const getTags = () => api.get('/tags')
+export const createTag = (data) => api.post('/tags', data)
+export const deleteTag = (id) => api.delete(`/tags/${id}`)
+export const tagTarget = (targetId, tagId) => api.post('/tags/assign', { target_id: targetId, tag_id: tagId })
+export const untagTarget = (targetId, tagId) => api.delete(`/tags/assign/${targetId}/${tagId}`)
+export const getTargetsByTag = (tagId) => api.get(`/tags/${tagId}/targets`)
+export const getTargetTags = (targetId) => api.get(`/targets/${targetId}/tags`)
 
 export default api

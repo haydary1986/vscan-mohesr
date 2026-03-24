@@ -52,6 +52,8 @@
     "login": "Sign In",
     "register": "Sign Up",
     "aiChat": "AI Assistant",
+    "compare": "Compare",
+    "webhooks": "Webhooks",
     "logout": "Sign Out"
   },
   "landing": {
@@ -299,6 +301,38 @@
     "noKeys": "No API keys",
     "quickRef": "API Quick Reference",
     "upgradeNeeded": "This feature is available only for Pro and Enterprise plans"
+  },
+  "compare": {
+    "title": "Scan Comparison",
+    "subtitle": "Compare before and after scan results side by side",
+    "selectOld": "Select Old Scan Result",
+    "selectNew": "Select New Scan Result",
+    "compareBtn": "Compare",
+    "scoreChange": "Score Change",
+    "improved": "Improved",
+    "declined": "Declined",
+    "unchanged": "Unchanged",
+    "totalChecks": "Total Checks",
+    "categoryComparison": "Category Comparison",
+    "checkComparison": "Check Comparison",
+    "old": "Old",
+    "new": "New",
+    "change": "Change",
+    "filterAll": "All",
+    "filterImproved": "Improved",
+    "filterDeclined": "Declined",
+    "filterUnchanged": "Unchanged",
+    "selectResults": "Select two scan results to compare",
+    "noResults": "No scan results available"
+  },
+  "compliance": {
+    "title": "OWASP Top 10 Compliance",
+    "overallCompliance": "Overall Compliance",
+    "totalChecks": "Total Checks",
+    "passed": "Passed",
+    "checksPassed": "checks passed",
+    "showChecks": "Show Checks",
+    "hideChecks": "Hide Checks"
   },
   "grades": {
     "aPlus": "Excellent",

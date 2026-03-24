@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getScanResult, analyzeResult, getAIAnalysis, downloadReport, getScoreHistory } from '../api'
+import { getScanResult, analyzeResult, getAIAnalysis, downloadReport, getScoreHistory, getComplianceReport, getRemediationGuide } from '../api'
 import { categoryInfo, getCheckExplanation } from '../data/securityKnowledge'
 import { Radar, Line } from 'vue-chartjs'
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, CategoryScale, LinearScale } from 'chart.js'
@@ -20,6 +20,16 @@ const showAI = ref(false)
 const pdfLoading = ref(false)
 const scoreHistory = ref([])
 const historyLoading = ref(false)
+const compliance = ref(null)
+const complianceLoading = ref(false)
+const expandedOwasp = ref({})
+
+// Remediation state
+const showRemediation = ref(false)
+const remediationGuide = ref(null)
+const remediationLoading = ref(false)
+const remediationCheckName = ref('')
+const activeServerType = ref('apache')
 
 const historyChartData = computed(() => {
   if (scoreHistory.value.length < 2) return null
@@ -99,6 +109,7 @@ const categoryLabels = {
   seo: 'SEO & Technical Health',
   third_party: 'Third-Party Scripts',
   js_libraries: 'JavaScript Libraries',
+  wordpress: 'WordPress Security',
 }
 
 const categoryIcons = {
@@ -122,6 +133,7 @@ const categoryIcons = {
   third_party: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
   js_libraries: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
   threat_intel: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  wordpress: 'M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 1.5c4.694 0 8.5 3.806 8.5 8.5s-3.806 8.5-8.5 8.5S3.5 16.694 3.5 12 7.306 3.5 12 3.5zM6 12l2.5 7 2-5.5L13 19l2.5-7h2.5',
 }
 
 const radarData = computed(() => {
@@ -203,6 +215,22 @@ function getScoreBg(score) {
   return 'bg-red-500'
 }
 
+function toggleOwasp(id) {
+  expandedOwasp.value = { ...expandedOwasp.value, [id]: !expandedOwasp.value[id] }
+}
+
+function getComplianceColor(pct) {
+  if (pct >= 100) return 'bg-green-500'
+  if (pct >= 50) return 'bg-yellow-500'
+  return 'bg-red-500'
+}
+
+function getComplianceTextColor(pct) {
+  if (pct >= 100) return 'text-green-600'
+  if (pct >= 50) return 'text-yellow-600'
+  return 'text-red-600'
+}
+
 async function runAIAnalysis() {
   aiLoading.value = true
   showAI.value = true
@@ -224,6 +252,94 @@ async function loadExistingAnalysis() {
   } catch { /* no existing analysis */ }
 }
 
+// --- Severity Filter (Feature 2) ---
+const severityFilter = ref('all')
+
+// Flatten all checks from all categories for counting
+const allChecks = computed(() => {
+  const checks = []
+  for (const catKey of Object.keys(categories.value)) {
+    checks.push(...categories.value[catKey])
+  }
+  return checks
+})
+
+const criticalCount = computed(() => allChecks.value.filter(c => c.severity === 'critical').length)
+const highCount = computed(() => allChecks.value.filter(c => c.severity === 'high').length)
+const mediumCount = computed(() => allChecks.value.filter(c => c.severity === 'medium').length)
+
+function filterChecksBySeverity(checks) {
+  if (severityFilter.value === 'all') return checks
+  if (severityFilter.value === 'fail') return checks.filter(c => c.status === 'fail')
+  return checks.filter(c => c.severity === severityFilter.value)
+}
+
+// Remediation
+const serverTypes = [
+  { key: 'cloudflare', label: 'Cloudflare' },
+  { key: 'apache', label: 'Apache' },
+  { key: 'nginx', label: 'Nginx' },
+  { key: 'litespeed', label: 'LiteSpeed' },
+  { key: 'plesk', label: 'Plesk' },
+  { key: 'cpanel', label: 'cPanel' },
+  { key: 'wordpress', label: 'WordPress' },
+]
+
+async function loadRemediation(checkName) {
+  remediationCheckName.value = checkName
+  remediationLoading.value = true
+  showRemediation.value = true
+  remediationGuide.value = null
+  try {
+    const { data } = await getRemediationGuide(checkName)
+    remediationGuide.value = data
+    // Select first available server type
+    const availableKeys = Object.keys(data.guides || {})
+    if (availableKeys.length && !availableKeys.includes(activeServerType.value)) {
+      activeServerType.value = availableKeys[0]
+    }
+  } catch {
+    remediationGuide.value = null
+  } finally {
+    remediationLoading.value = false
+  }
+}
+
+function closeRemediation() {
+  showRemediation.value = false
+  remediationGuide.value = null
+}
+
+function copyCodeBlock(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Brief visual feedback is handled by the button text change
+  }).catch(() => {
+    // Fallback for older browsers
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    document.body.appendChild(textarea)
+    textarea.select()
+    document.execCommand('copy')
+    document.body.removeChild(textarea)
+  })
+}
+
+function getPriorityColor(priority) {
+  const colors = {
+    critical: 'bg-red-100 text-red-700 border-red-200',
+    high: 'bg-orange-100 text-orange-700 border-orange-200',
+    medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    low: 'bg-blue-100 text-blue-700 border-blue-200',
+  }
+  return colors[priority] || 'bg-gray-100 text-gray-700 border-gray-200'
+}
+
+function getConfidenceClass(confidence) {
+  if (confidence >= 90) return 'bg-green-100 text-green-700'
+  if (confidence >= 70) return 'bg-yellow-100 text-yellow-700'
+  return 'bg-orange-100 text-orange-700'
+}
+
 onMounted(async () => {
   try {
     const { data } = await getScanResult(route.params.id)
@@ -241,6 +357,13 @@ onMounted(async () => {
       } catch { /* no history available */ }
       historyLoading.value = false
     }
+    // Load compliance report
+    complianceLoading.value = true
+    try {
+      const compRes = await getComplianceReport(route.params.id)
+      compliance.value = compRes.data || null
+    } catch { /* no compliance data available */ }
+    complianceLoading.value = false
   } catch (e) {
     console.error('Failed to load result:', e)
   } finally {
@@ -333,6 +456,63 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- OWASP Top 10 Compliance -->
+      <div v-if="compliance && compliance.owasp_categories && compliance.owasp_categories.length" class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6">
+        <div class="flex items-center gap-3 mb-6">
+          <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">OWASP Top 10 Compliance</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ compliance.total_passed }}/{{ compliance.total_checks }} checks passed</p>
+          </div>
+          <!-- Circular Gauge -->
+          <div class="ms-auto flex items-center gap-4">
+            <div class="relative w-20 h-20">
+              <svg class="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
+                <path class="text-gray-200 dark:text-slate-700" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                <path :class="getComplianceColor(compliance.overall_compliance).replace('bg-', 'text-')" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" :stroke-dasharray="`${compliance.overall_compliance}, 100`" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              </svg>
+              <span :class="['absolute inset-0 flex items-center justify-center text-sm font-bold', getComplianceTextColor(compliance.overall_compliance)]">
+                {{ Math.round(compliance.overall_compliance) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- OWASP Category Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="cat in compliance.owasp_categories" :key="cat.id" class="border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
+            <button @click="toggleOwasp(cat.id)" class="w-full p-4 text-start hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">{{ cat.id }}</span>
+                <span :class="['text-xs font-medium px-2 py-0.5 rounded-full', cat.compliance >= 100 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : cat.compliance >= 50 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400']">
+                  {{ cat.passed_checks }}/{{ cat.total_checks }} passed
+                </span>
+              </div>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-200 mb-2">{{ cat.name }}</p>
+              <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2.5">
+                <div :class="['h-2.5 rounded-full transition-all', getComplianceColor(cat.compliance)]" :style="{ width: cat.compliance + '%' }"></div>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ Math.round(cat.compliance) }}% compliant</p>
+            </button>
+            <!-- Expanded checks -->
+            <div v-if="expandedOwasp[cat.id]" class="border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 p-3 space-y-2">
+              <div v-for="ch in cat.checks" :key="ch.name" class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2">
+                  <span :class="['w-2 h-2 rounded-full', ch.status === 'pass' ? 'bg-green-500' : ch.status === 'fail' ? 'bg-red-500' : 'bg-yellow-500']"></span>
+                  <span class="text-gray-700 dark:text-gray-300">{{ ch.name }}</span>
+                </div>
+                <span :class="['text-xs font-medium', ch.status === 'pass' ? 'text-green-600' : ch.status === 'fail' ? 'text-red-600' : 'text-yellow-600']">{{ ch.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="complianceLoading" class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6 flex justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Radar Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -376,6 +556,25 @@ onMounted(async () => {
             </div>
           </div>
 
+          <!-- Severity Filter -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <button @click="severityFilter = 'all'" :class="severityFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm transition-colors">
+              All ({{ allChecks.length }})
+            </button>
+            <button @click="severityFilter = 'critical'" :class="severityFilter === 'critical' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm transition-colors">
+              Critical ({{ criticalCount }})
+            </button>
+            <button @click="severityFilter = 'high'" :class="severityFilter === 'high' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm transition-colors">
+              High ({{ highCount }})
+            </button>
+            <button @click="severityFilter = 'medium'" :class="severityFilter === 'medium' ? 'bg-yellow-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm transition-colors">
+              Medium ({{ mediumCount }})
+            </button>
+            <button @click="severityFilter = 'fail'" :class="severityFilter === 'fail' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'" class="px-3 py-1.5 rounded-lg text-sm transition-colors">
+              Failed Only
+            </button>
+          </div>
+
           <!-- Check Details -->
           <div v-if="activeCategory && categories[activeCategory]" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
@@ -384,7 +583,7 @@ onMounted(async () => {
               </h3>
             </div>
             <div class="divide-y divide-gray-100">
-              <div v-for="check in categories[activeCategory]" :key="check.ID" class="p-4">
+              <div v-for="check in filterChecksBySeverity(categories[activeCategory])" :key="check.ID" class="p-4">
                 <div class="flex items-center justify-between mb-2">
                   <div class="flex items-center gap-2">
                     <span :class="['px-2 py-0.5 rounded text-xs font-medium', getStatusColor(check.status)]">
@@ -398,6 +597,9 @@ onMounted(async () => {
                     </span>
                     <span v-if="check.owasp" class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-mono">{{ check.owasp }}</span>
                     <span v-if="check.cwe" class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-mono">{{ check.cwe }}</span>
+                    <span v-if="check.confidence" :class="[getConfidenceClass(check.confidence), 'px-2 py-0.5 rounded text-xs']">
+                      {{ check.confidence }}% confidence
+                    </span>
                     <span :class="['font-bold', getScoreColor(check.score)]">{{ Math.round(check.score) }}/1000</span>
                   </div>
                 </div>
@@ -426,11 +628,152 @@ onMounted(async () => {
                     <span class="text-gray-700">{{ typeof value === 'object' ? JSON.stringify(value) : value }}</span>
                   </div>
                 </div>
+
+                <!-- Fix This Button -->
+                <div v-if="check.status === 'fail' || check.status === 'warn' || check.status === 'warning' || check.score < 800" class="mt-3">
+                  <button @click="loadRemediation(check.check_name)"
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 text-sm font-medium">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Fix This
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Remediation Slide-Out Panel -->
+    <Teleport to="body">
+      <div v-if="showRemediation" class="fixed inset-0 z-50 flex justify-end">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50" @click="closeRemediation"></div>
+
+        <!-- Panel -->
+        <div class="relative w-full max-w-2xl bg-white shadow-2xl overflow-y-auto animate-slide-in-right">
+          <!-- Header -->
+          <div class="sticky top-0 bg-white border-b border-gray-200 p-6 z-10">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-emerald-100 rounded-lg">
+                  <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="text-lg font-bold text-gray-900">Remediation Guide</h2>
+                  <p class="text-sm text-gray-500">{{ remediationCheckName }}</p>
+                </div>
+              </div>
+              <button @click="closeRemediation" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Priority & Time badges -->
+            <div v-if="remediationGuide" class="flex items-center gap-3 mt-3">
+              <span :class="['px-3 py-1 rounded-full text-xs font-semibold border', getPriorityColor(remediationGuide.priority)]">
+                {{ remediationGuide.priority?.toUpperCase() }} PRIORITY
+              </span>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                ~ {{ remediationGuide.time_estimate }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="remediationLoading" class="flex items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
+          </div>
+
+          <!-- No Guide Found -->
+          <div v-else-if="!remediationGuide" class="p-6 text-center">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-gray-500 text-lg">No remediation guide available for this check yet.</p>
+            <p class="text-gray-400 text-sm mt-2">Use the AI Analysis feature for custom recommendations.</p>
+          </div>
+
+          <!-- Guide Content -->
+          <div v-else class="p-6">
+            <!-- Description -->
+            <div class="mb-6">
+              <h3 class="font-semibold text-gray-900 mb-2">{{ remediationGuide.title }}</h3>
+              <p class="text-sm text-gray-600">{{ remediationGuide.description }}</p>
+            </div>
+
+            <!-- Server Type Tabs -->
+            <div class="mb-6">
+              <p class="text-sm font-medium text-gray-700 mb-2">Select your server type:</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="st in serverTypes.filter(s => remediationGuide.guides && remediationGuide.guides[s.key])"
+                  :key="st.key"
+                  @click="activeServerType = st.key"
+                  :class="[
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all border',
+                    activeServerType === st.key
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                      : 'bg-white text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'
+                  ]"
+                >
+                  {{ st.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Instructions -->
+            <div v-if="remediationGuide.guides && remediationGuide.guides[activeServerType]" class="prose prose-sm max-w-none">
+              <div class="bg-gray-50 rounded-xl border border-gray-200 p-5">
+                <div v-for="(block, idx) in remediationGuide.guides[activeServerType].split('```')" :key="idx">
+                  <!-- Code block (odd indices after split on ```) -->
+                  <div v-if="idx % 2 === 1" class="my-3">
+                    <div class="flex items-center justify-between bg-gray-800 rounded-t-lg px-4 py-2">
+                      <span class="text-xs text-gray-400 font-mono">{{ block.split('\n')[0] || 'code' }}</span>
+                      <button @click="copyCodeBlock(block.split('\n').slice(1).join('\n').trim())"
+                        class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copy
+                      </button>
+                    </div>
+                    <pre class="bg-gray-900 text-gray-100 p-4 rounded-b-lg overflow-x-auto text-xs leading-relaxed"><code>{{ block.split('\n').slice(1).join('\n').trim() }}</code></pre>
+                  </div>
+                  <!-- Regular text (even indices) -->
+                  <div v-else class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ block }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="text-center py-10 text-gray-500">
+              <p>Select a server type above to see the remediation guide.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+</style>
