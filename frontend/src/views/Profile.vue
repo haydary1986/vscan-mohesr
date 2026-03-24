@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getProfile, getMyOrganization, changePassword } from '../api'
+import { getProfile, getMyOrganization, changePassword, getMyAlerts, updateMyAlerts } from '../api'
 import api from '../api'
 
 const user = ref(null)
@@ -14,16 +14,45 @@ const profileForm = ref({ username: '', full_name: '', email: '' })
 const passwordForm = ref({ old_password: '', new_password: '', confirm_password: '' })
 const showPasswordForm = ref(false)
 
+// Email alert state
+const alertForm = ref({
+  email: '',
+  events: { scan_completed: true, score_drop: true, critical_found: false },
+  digest_frequency: 'immediate',
+  is_active: false,
+})
+const alertSaving = ref(false)
+const alertMessage = ref('')
+
 async function loadProfile() {
   loading.value = true
   try {
-    const [userRes, orgRes] = await Promise.all([getProfile(), getMyOrganization()])
+    const [userRes, orgRes, alertsRes] = await Promise.all([
+      getProfile(),
+      getMyOrganization(),
+      getMyAlerts(),
+    ])
     user.value = userRes.data
     org.value = orgRes.data
     profileForm.value = {
       username: userRes.data.username,
       full_name: userRes.data.full_name || '',
       email: userRes.data.email || '',
+    }
+
+    // Parse alert preferences
+    const alert = alertsRes.data
+    if (alert) {
+      alertForm.value.email = alert.email || userRes.data.email || ''
+      alertForm.value.is_active = alert.is_active || false
+      alertForm.value.digest_frequency = alert.digest_frequency || 'immediate'
+      // Parse events string into object
+      const eventList = (alert.events || '').split(',').map(e => e.trim())
+      alertForm.value.events = {
+        scan_completed: eventList.includes('scan_completed'),
+        score_drop: eventList.includes('score_drop'),
+        critical_found: eventList.includes('critical_found'),
+      }
     }
   } catch (e) {
     console.error(e)
@@ -79,6 +108,32 @@ async function updatePassword() {
     error.value = e.response?.data?.error || 'Failed to change password'
   } finally {
     saving.value = false
+  }
+}
+
+async function saveAlerts() {
+  alertSaving.value = true
+  alertMessage.value = ''
+  try {
+    // Build events string from checkboxes
+    const events = Object.entries(alertForm.value.events)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+      .join(',')
+
+    await updateMyAlerts({
+      email: alertForm.value.email,
+      events,
+      min_severity: 'all',
+      is_active: alertForm.value.is_active,
+      digest_frequency: alertForm.value.digest_frequency,
+    })
+    alertMessage.value = 'Alert preferences saved!'
+    setTimeout(() => alertMessage.value = '', 3000)
+  } catch (e) {
+    alertMessage.value = 'Failed: ' + (e.response?.data?.error || e.message)
+  } finally {
+    alertSaving.value = false
   }
 }
 
@@ -164,6 +219,99 @@ onMounted(loadProfile)
           <button type="submit" :disabled="saving"
             class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
             {{ saving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Email Alert Preferences -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          Email Alerts
+        </h3>
+
+        <form @submit.prevent="saveAlerts" class="space-y-4">
+          <!-- Toggle active -->
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-700">Enable Email Alerts</p>
+              <p class="text-xs text-gray-400">Receive email notifications for scan events</p>
+            </div>
+            <button type="button" @click="alertForm.is_active = !alertForm.is_active"
+              :class="[alertForm.is_active ? 'bg-indigo-600' : 'bg-gray-300', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out']">
+              <span :class="[alertForm.is_active ? 'translate-x-5' : 'translate-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out mt-0.5 ml-0.5']"></span>
+            </button>
+          </div>
+
+          <div v-if="alertForm.is_active" class="space-y-4">
+            <!-- Email -->
+            <div>
+              <label class="block text-sm text-gray-600 mb-1">Notification Email</label>
+              <input v-model="alertForm.email" type="email" required
+                placeholder="your@email.com"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+            </div>
+
+            <!-- Event checkboxes -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Notify me when</label>
+              <div class="space-y-2">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" v-model="alertForm.events.scan_completed"
+                    class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                  <div>
+                    <span class="text-sm text-gray-700">Scan Completed</span>
+                    <p class="text-xs text-gray-400">When a scan job finishes and results are ready</p>
+                  </div>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" v-model="alertForm.events.score_drop"
+                    class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                  <div>
+                    <span class="text-sm text-gray-700">Score Drop</span>
+                    <p class="text-xs text-gray-400">When a website's security score decreases</p>
+                  </div>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" v-model="alertForm.events.critical_found"
+                    class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
+                  <div>
+                    <span class="text-sm text-gray-700">Critical Vulnerability Found</span>
+                    <p class="text-xs text-gray-400">When a critical severity issue is detected</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Frequency -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Frequency</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" @click="alertForm.digest_frequency = 'immediate'"
+                  :class="[alertForm.digest_frequency === 'immediate' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50', 'px-3 py-2 text-sm rounded-lg border text-center transition-colors']">
+                  Immediate
+                </button>
+                <button type="button" @click="alertForm.digest_frequency = 'daily'"
+                  :class="[alertForm.digest_frequency === 'daily' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50', 'px-3 py-2 text-sm rounded-lg border text-center transition-colors']">
+                  Daily Digest
+                </button>
+                <button type="button" @click="alertForm.digest_frequency = 'weekly'"
+                  :class="[alertForm.digest_frequency === 'weekly' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50', 'px-3 py-2 text-sm rounded-lg border text-center transition-colors']">
+                  Weekly Digest
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="alertMessage" :class="['px-4 py-3 rounded-lg text-sm', alertMessage.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700']">
+            {{ alertMessage }}
+          </div>
+
+          <button type="submit" :disabled="alertSaving"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
+            {{ alertSaving ? 'Saving...' : 'Save Alert Preferences' }}
           </button>
         </form>
       </div>

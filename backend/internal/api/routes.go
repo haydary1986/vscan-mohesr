@@ -85,6 +85,7 @@ func SetupRoutes(app *fiber.App) {
 	results.Get("/:id/sarif", ExportSARIF)
 	results.Get("/:id/compliance", GetComplianceReport)
 	results.Get("/:id/upgrades", GetUpgradeSuggestions)
+	results.Get("/:id/csv", ExportCSV)
 
 	// AI Analysis
 	protected.Post("/ai/analyze/:id", AnalyzeScanResult)
@@ -96,10 +97,18 @@ func SetupRoutes(app *fiber.App) {
 	// Dashboard & Leaderboard
 	protected.Get("/dashboard", GetDashboardStats)
 	protected.Get("/leaderboard", GetLeaderboard)
+	protected.Get("/leaderboard/csv", ExportLeaderboardCSV)
 	protected.Get("/compare", CompareScanResults)
 
 	// Remediation Guides
 	protected.Get("/remediation", GetRemediationGuide)
+
+	// Scan Policies
+	protected.Get("/scan-policies", GetScanPolicies)
+
+	// Integrations (GitHub / Jira issue creation)
+	protected.Post("/integrations/github/issue", CreateGitHubIssue)
+	protected.Post("/integrations/jira/issue", CreateJiraIssue)
 
 	// Tags
 	tags := protected.Group("/tags")
@@ -112,6 +121,10 @@ func SetupRoutes(app *fiber.App) {
 
 	// Target Tags (per target)
 	protected.Get("/targets/:id/tags", GetTargetTags)
+
+	// Email Alerts (user)
+	protected.Get("/alerts", GetMyAlerts)
+	protected.Put("/alerts", UpdateMyAlerts)
 
 	// Webhooks
 	webhooks := protected.Group("/webhooks")
@@ -142,6 +155,11 @@ func SetupRoutes(app *fiber.App) {
 	// Settings
 	admin.Get("/settings", GetSettings)
 	admin.Put("/settings", UpdateSettings)
+
+	// Email Config (admin)
+	admin.Get("/email-config", GetEmailConfig)
+	admin.Put("/email-config", UpdateEmailConfig)
+	admin.Post("/email-config/test", TestEmailConfig)
 
 	// Upgrade Request Management (admin)
 	admin.Get("/upgrade/all", GetAllUpgradeRequests)

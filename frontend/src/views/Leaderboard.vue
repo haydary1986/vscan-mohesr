@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getLeaderboard } from '../api'
+import { getLeaderboard, exportLeaderboardCSV } from '../api'
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js'
 
@@ -10,6 +10,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 const router = useRouter()
 const data = ref(null)
 const loading = ref(true)
+const csvExporting = ref(false)
 
 // --- Filter / search state ---
 const selectedCategory = ref('overall')
@@ -184,6 +185,27 @@ const chartOptions = computed(() => ({
   },
 }))
 
+// --- CSV Export ---
+
+async function downloadCSV() {
+  csvExporting.value = true
+  try {
+    const { data } = await exportLeaderboardCSV()
+    const url = window.URL.createObjectURL(new Blob([data], { type: 'text/csv' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'vscan-leaderboard.csv')
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to export CSV')
+  } finally {
+    csvExporting.value = false
+  }
+}
+
 // --- Load data ---
 
 onMounted(async () => {
@@ -201,9 +223,22 @@ onMounted(async () => {
 <template>
   <div>
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Leaderboard</h1>
-      <p class="text-gray-500 mt-1">All websites ranked by security score (highest to lowest)</p>
+    <div class="mb-8 flex items-start justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Leaderboard</h1>
+        <p class="text-gray-500 mt-1">All websites ranked by security score (highest to lowest)</p>
+      </div>
+      <button
+        v-if="data?.rankings?.length"
+        @click="downloadCSV"
+        :disabled="csvExporting"
+        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 text-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        {{ csvExporting ? 'Exporting...' : 'Export CSV' }}
+      </button>
     </div>
 
     <!-- Loading -->

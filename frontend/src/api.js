@@ -52,11 +52,13 @@ export const getScanResult = (id) => api.get(`/results/${id}`)
 export const downloadReport = (id) => api.get(`/results/${id}/pdf`, { responseType: 'blob' })
 export const exportSARIF = (id) => api.get(`/results/${id}/sarif`, { responseType: 'blob' })
 export const getUpgradeSuggestions = (id) => api.get(`/results/${id}/upgrades`)
+export const exportCSV = (id) => api.get(`/results/${id}/csv`, { responseType: 'blob' })
 export const getScoreHistory = (id) => api.get(`/targets/${id}/history`)
 
 // Dashboard & Leaderboard
 export const getDashboardStats = () => api.get('/dashboard')
 export const getLeaderboard = () => api.get('/leaderboard')
+export const exportLeaderboardCSV = () => api.get('/leaderboard/csv', { responseType: 'blob' })
 
 // Comparison & Compliance
 export const compareScanResults = (oldId, newId) => api.get(`/compare?old=${oldId}&new=${newId}`)
@@ -125,5 +127,21 @@ export const tagTarget = (targetId, tagId) => api.post('/tags/assign', { target_
 export const untagTarget = (targetId, tagId) => api.delete(`/tags/assign/${targetId}/${tagId}`)
 export const getTargetsByTag = (tagId) => api.get(`/tags/${tagId}/targets`)
 export const getTargetTags = (targetId) => api.get(`/targets/${targetId}/tags`)
+
+// Email Config (admin)
+export const getEmailConfig = () => api.get('/email-config')
+export const updateEmailConfig = (data) => api.put('/email-config', data)
+export const testEmailConfig = (email) => api.post('/email-config/test', { email })
+
+// Email Alerts (user)
+export const getMyAlerts = () => api.get('/alerts')
+export const updateMyAlerts = (data) => api.put('/alerts', data)
+
+// Scan Policies
+export const getScanPolicies = () => api.get('/scan-policies')
+
+// Integrations (GitHub / Jira)
+export const createGitHubIssue = (data) => api.post('/integrations/github/issue', data)
+export const createJiraIssue = (data) => api.post('/integrations/jira/issue', data)
 
 export default api

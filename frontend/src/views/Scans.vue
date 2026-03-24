@@ -16,6 +16,7 @@ const scanForm = ref({
   name: '',
   target_ids: [],
   selectAll: true,
+  policy: 'standard',
 })
 
 async function loadData() {
@@ -40,10 +41,11 @@ async function runScan() {
     const payload = {
       name: scanForm.value.name,
       target_ids: scanForm.value.selectAll ? [] : scanForm.value.target_ids,
+      policy: scanForm.value.policy,
     }
     await startScan(payload)
     showStartForm.value = false
-    scanForm.value = { name: '', target_ids: [], selectAll: true }
+    scanForm.value = { name: '', target_ids: [], selectAll: true, policy: 'standard' }
     await loadData()
   } catch (e) {
     if (e.response?.status === 403 && e.response?.data?.unverified_domains) {
@@ -184,6 +186,82 @@ onMounted(() => {
               <input v-model="scanForm.target_ids" :value="target.ID" type="checkbox" class="rounded text-indigo-600" />
               <span class="text-sm">{{ target.name || target.url }}</span>
               <span class="text-xs text-gray-400">{{ target.url }}</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Scan Policy Selector -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-3">Scan Policy</label>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- Light -->
+            <label
+              :class="[
+                'relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all',
+                scanForm.policy === 'light'
+                  ? 'border-yellow-500 bg-yellow-50 shadow-md'
+                  : 'border-gray-200 bg-white hover:border-yellow-300 hover:bg-yellow-50/50'
+              ]"
+            >
+              <input v-model="scanForm.policy" type="radio" value="light" class="sr-only" />
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span class="font-semibold text-gray-900">Light</span>
+              </div>
+              <p class="text-xs text-gray-500 mb-1">8 categories, ~30s per site</p>
+              <p class="text-xs text-gray-400">Quick security check for basic issues</p>
+              <div v-if="scanForm.policy === 'light'" class="absolute top-2 right-2">
+                <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              </div>
+            </label>
+
+            <!-- Standard -->
+            <label
+              :class="[
+                'relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all',
+                scanForm.policy === 'standard'
+                  ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                  : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50'
+              ]"
+            >
+              <input v-model="scanForm.policy" type="radio" value="standard" class="sr-only" />
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <span class="font-semibold text-gray-900">Standard</span>
+                <span class="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-medium">Recommended</span>
+              </div>
+              <p class="text-xs text-gray-500 mb-1">16 categories, ~60s per site</p>
+              <p class="text-xs text-gray-400">Comprehensive security audit</p>
+              <div v-if="scanForm.policy === 'standard'" class="absolute top-2 right-2">
+                <svg class="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              </div>
+            </label>
+
+            <!-- Deep -->
+            <label
+              :class="[
+                'relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all',
+                scanForm.policy === 'deep'
+                  ? 'border-red-500 bg-red-50 shadow-md'
+                  : 'border-gray-200 bg-white hover:border-red-300 hover:bg-red-50/50'
+              ]"
+            >
+              <input v-model="scanForm.policy" type="radio" value="deep" class="sr-only" />
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                <span class="font-semibold text-gray-900">Deep</span>
+              </div>
+              <p class="text-xs text-gray-500 mb-1">All categories, ~2min per site</p>
+              <p class="text-xs text-gray-400">Full assessment incl. XSS, malware, secrets</p>
+              <div v-if="scanForm.policy === 'deep'" class="absolute top-2 right-2">
+                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              </div>
             </label>
           </div>
         </div>

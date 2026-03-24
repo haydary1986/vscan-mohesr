@@ -150,6 +150,9 @@ type CheckResult struct {
 	CWE          string  `json:"cwe"`
 	CWEName      string  `json:"cwe_name"`
 	Confidence   int     `json:"confidence" gorm:"default:80"` // 0-100 confidence level
+	CVSSScore    float64 `json:"cvss_score"`
+	CVSSVector   string  `json:"cvss_vector"`
+	CVSSRating   string  `json:"cvss_rating"`
 }
 
 // --- Upgrade Requests ---
@@ -232,4 +235,28 @@ type Webhook struct {
 	IsActive       bool   `json:"is_active" gorm:"default:true"`
 	Events         string `json:"events" gorm:"default:scan_completed"` // comma-separated: scan_completed, score_drop, critical_found
 	MinSeverity    string `json:"min_severity" gorm:"default:all"`      // all, critical, high, medium
+}
+
+// --- Email ---
+
+type EmailConfig struct {
+	gorm.Model
+	SMTPHost     string `json:"smtp_host"`
+	SMTPPort     int    `json:"smtp_port" gorm:"default:587"`
+	SMTPUser     string `json:"smtp_user"`
+	SMTPPass     string `json:"smtp_pass"`
+	FromEmail    string `json:"from_email"`
+	FromName     string `json:"from_name" gorm:"default:VScan-MOHESR"`
+	IsConfigured bool   `json:"is_configured" gorm:"default:false"`
+}
+
+type EmailAlert struct {
+	gorm.Model
+	OrganizationID  uint   `json:"organization_id"`
+	UserID          uint   `json:"user_id"`
+	Email           string `json:"email" gorm:"not null"`
+	Events          string `json:"events" gorm:"default:scan_completed,score_drop"` // comma-separated
+	MinSeverity     string `json:"min_severity" gorm:"default:all"`
+	IsActive        bool   `json:"is_active" gorm:"default:true"`
+	DigestFrequency string `json:"digest_frequency" gorm:"default:immediate"` // immediate, daily, weekly
 }

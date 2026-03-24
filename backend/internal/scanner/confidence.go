@@ -126,6 +126,22 @@ var CheckConfidence = map[string]int{
 	"Input Sanitization Check":               75,
 	"Content-Type & X-XSS-Protection Headers": 100,
 	"URL Parameter Reflection Analysis":       75,
+
+	// Secrets Detection Scanner
+	"API Key Exposure":                    90,
+	"Private Key Exposure":                95,
+	"Database Connection String Exposure": 85,
+	"Email/Password Exposure":             80,
+
+	// Subdomain Discovery Scanner
+	"Common Subdomain Enumeration":          70,
+	"Subdomain Security Check":              90,
+	"Dangling DNS / Subdomain Takeover Risk": 75,
+
+	// Technology Detection Scanner
+	"Web Framework Detection":      85,
+	"Server Technology Detection":  85,
+	"JavaScript Library Inventory": 85,
 }
 
 func GetConfidence(checkName string) int {

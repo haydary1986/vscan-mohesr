@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getScanResult, analyzeResult, getAIAnalysis, downloadReport, exportSARIF, getUpgradeSuggestions, getScoreHistory, getComplianceReport, getRemediationGuide } from '../api'
+import { getScanResult, analyzeResult, getAIAnalysis, downloadReport, exportSARIF, exportCSV, getUpgradeSuggestions, getScoreHistory, getComplianceReport, getRemediationGuide, createGitHubIssue, createJiraIssue } from '../api'
 import { categoryInfo, getCheckExplanation } from '../data/securityKnowledge'
 import { Radar, Line } from 'vue-chartjs'
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, CategoryScale, LinearScale } from 'chart.js'
@@ -33,6 +33,9 @@ const activeServerType = ref('apache')
 
 // SARIF export state
 const sarifLoading = ref(false)
+
+// CSV export state
+const csvLoading = ref(false)
 
 // Upgrade suggestions state
 const upgradeSuggestions = ref([])
@@ -112,6 +115,25 @@ async function downloadSARIF() {
     alert(e.response?.data?.error || 'Failed to download SARIF report')
   } finally {
     sarifLoading.value = false
+  }
+}
+
+async function downloadCSV() {
+  csvLoading.value = true
+  try {
+    const { data } = await exportCSV(route.params.id)
+    const url = window.URL.createObjectURL(new Blob([data], { type: 'text/csv' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `vscan-report-${route.params.id}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to download CSV report')
+  } finally {
+    csvLoading.value = false
   }
 }
 
@@ -393,6 +415,84 @@ function getConfidenceClass(confidence) {
   return 'bg-orange-100 text-orange-700'
 }
 
+// CVSS badge color
+function getCVSSClass(rating) {
+  const classes = {
+    Critical: 'bg-red-100 text-red-800 border border-red-300',
+    High: 'bg-orange-100 text-orange-800 border border-orange-300',
+    Medium: 'bg-yellow-100 text-yellow-800 border border-yellow-300',
+    Low: 'bg-blue-100 text-blue-800 border border-blue-300',
+    None: 'bg-gray-100 text-gray-600 border border-gray-300',
+  }
+  return classes[rating] || 'bg-gray-100 text-gray-600 border border-gray-300'
+}
+
+// --- Issue Creation (GitHub / Jira) ---
+const showIssueModal = ref(false)
+const issueType = ref('') // 'github' or 'jira'
+const issueCheckId = ref(null)
+const issueCheckName = ref('')
+const issueLoading = ref(false)
+const issueSuccess = ref('')
+const issueError = ref('')
+
+const issueForm = ref({
+  repo_owner: '',
+  repo_name: '',
+  token: '',
+  jira_url: '',
+  project_key: '',
+  email: '',
+})
+
+function openIssueModal(type, check) {
+  issueType.value = type
+  issueCheckId.value = check.ID
+  issueCheckName.value = check.check_name
+  issueSuccess.value = ''
+  issueError.value = ''
+  showIssueModal.value = true
+}
+
+function closeIssueModal() {
+  showIssueModal.value = false
+  issueType.value = ''
+  issueCheckId.value = null
+  issueCheckName.value = ''
+  issueSuccess.value = ''
+  issueError.value = ''
+}
+
+async function submitIssue() {
+  issueLoading.value = true
+  issueError.value = ''
+  issueSuccess.value = ''
+  try {
+    if (issueType.value === 'github') {
+      const { data } = await createGitHubIssue({
+        check_id: issueCheckId.value,
+        repo_owner: issueForm.value.repo_owner,
+        repo_name: issueForm.value.repo_name,
+        token: issueForm.value.token,
+      })
+      issueSuccess.value = data.issue_url
+    } else {
+      const { data } = await createJiraIssue({
+        check_id: issueCheckId.value,
+        jira_url: issueForm.value.jira_url,
+        project_key: issueForm.value.project_key,
+        token: issueForm.value.token,
+        email: issueForm.value.email,
+      })
+      issueSuccess.value = data.issue_url
+    }
+  } catch (e) {
+    issueError.value = e.response?.data?.error || 'Failed to create issue'
+  } finally {
+    issueLoading.value = false
+  }
+}
+
 onMounted(async () => {
   try {
     const { data } = await getScanResult(route.params.id)
@@ -475,6 +575,13 @@ onMounted(async () => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
               </svg>
               {{ sarifLoading ? 'Exporting...' : 'SARIF Export' }}
+            </button>
+            <button @click="downloadCSV" :disabled="csvLoading"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              {{ csvLoading ? 'Exporting...' : 'CSV Export' }}
             </button>
             <button @click="runAIAnalysis" :disabled="aiLoading"
               class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2 text-sm">
@@ -743,6 +850,9 @@ onMounted(async () => {
                     </span>
                     <span v-if="check.owasp" class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-mono">{{ check.owasp }}</span>
                     <span v-if="check.cwe" class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-mono">{{ check.cwe }}</span>
+                    <span v-if="check.cvss_score > 0" :class="[getCVSSClass(check.cvss_rating), 'px-2 py-0.5 rounded text-xs font-mono']">
+                      CVSS {{ check.cvss_score }}
+                    </span>
                     <span v-if="check.confidence" :class="[getConfidenceClass(check.confidence), 'px-2 py-0.5 rounded text-xs']">
                       {{ check.confidence }}% confidence
                     </span>
@@ -775,8 +885,8 @@ onMounted(async () => {
                   </div>
                 </div>
 
-                <!-- Fix This Button -->
-                <div v-if="check.status === 'fail' || check.status === 'warn' || check.status === 'warning' || check.score < 800" class="mt-3">
+                <!-- Fix This + Create Issue Buttons -->
+                <div v-if="check.status === 'fail' || check.status === 'warn' || check.status === 'warning' || check.score < 800" class="mt-3 flex flex-wrap gap-2">
                   <button @click="loadRemediation(check.check_name)"
                     class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 text-sm font-medium">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -785,6 +895,26 @@ onMounted(async () => {
                     </svg>
                     Fix This
                   </button>
+                  <!-- Create Issue dropdown -->
+                  <div v-if="check.status === 'fail'" class="relative group">
+                    <button class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm font-medium">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      Create Issue
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="absolute left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
+                      <button @click="openIssueModal('github', check)" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                        GitHub Issue
+                      </button>
+                      <button @click="openIssueModal('jira', check)" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg flex items-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 11.513H0a5.218 5.218 0 005.232 5.215h2.13v2.057A5.215 5.215 0 0012.575 24V12.518a1.005 1.005 0 00-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 005.215 5.214h2.129v2.058a5.218 5.218 0 005.215 5.214V6.758a1.001 1.001 0 00-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 005.215 5.215h2.129v2.057A5.215 5.215 0 0024 12.483V1.005A1.005 1.005 0 0023.013 0z"/></svg>
+                        Jira Ticket
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -792,6 +922,102 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <!-- Create Issue Modal -->
+    <Teleport to="body">
+      <div v-if="showIssueModal" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50" @click="closeIssueModal"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <!-- GitHub icon -->
+              <svg v-if="issueType === 'github'" class="w-6 h-6" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              <!-- Jira icon -->
+              <svg v-else class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 11.513H0a5.218 5.218 0 005.232 5.215h2.13v2.057A5.215 5.215 0 0012.575 24V12.518a1.005 1.005 0 00-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 005.215 5.214h2.129v2.058a5.218 5.218 0 005.215 5.214V6.758a1.001 1.001 0 00-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 005.215 5.215h2.129v2.057A5.215 5.215 0 0024 12.483V1.005A1.005 1.005 0 0023.013 0z"/></svg>
+              <h3 class="text-lg font-bold text-gray-900">
+                {{ issueType === 'github' ? 'Create GitHub Issue' : 'Create Jira Ticket' }}
+              </h3>
+            </div>
+            <button @click="closeIssueModal" class="p-1 text-gray-400 hover:text-gray-600 rounded">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+
+          <p class="text-sm text-gray-500 mb-4">Creating issue for: <strong>{{ issueCheckName }}</strong></p>
+
+          <!-- Success -->
+          <div v-if="issueSuccess" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <p class="text-sm text-green-700 font-medium mb-1">Issue created successfully!</p>
+            <a :href="issueSuccess" target="_blank" class="text-sm text-indigo-600 hover:underline break-all">{{ issueSuccess }}</a>
+          </div>
+
+          <!-- Error -->
+          <div v-if="issueError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <p class="text-sm text-red-700">{{ issueError }}</p>
+          </div>
+
+          <!-- GitHub Form -->
+          <form v-if="issueType === 'github' && !issueSuccess" @submit.prevent="submitIssue" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Repository Owner</label>
+              <input v-model="issueForm.repo_owner" type="text" required placeholder="e.g., octocat"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Repository Name</label>
+              <input v-model="issueForm.repo_name" type="text" required placeholder="e.g., my-project"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Personal Access Token</label>
+              <input v-model="issueForm.token" type="password" required placeholder="ghp_..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+              <p class="text-xs text-gray-400 mt-1">Needs "repo" scope</p>
+            </div>
+            <button type="submit" :disabled="issueLoading"
+              class="w-full px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-medium">
+              <div v-if="issueLoading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              {{ issueLoading ? 'Creating...' : 'Create GitHub Issue' }}
+            </button>
+          </form>
+
+          <!-- Jira Form -->
+          <form v-if="issueType === 'jira' && !issueSuccess" @submit.prevent="submitIssue" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Jira URL</label>
+              <input v-model="issueForm.jira_url" type="url" required placeholder="https://company.atlassian.net"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Project Key</label>
+              <input v-model="issueForm.project_key" type="text" required placeholder="e.g., SEC"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input v-model="issueForm.email" type="email" required placeholder="user@company.com"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">API Token</label>
+              <input v-model="issueForm.token" type="password" required placeholder="Jira API token"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
+            </div>
+            <button type="submit" :disabled="issueLoading"
+              class="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-medium">
+              <div v-if="issueLoading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              {{ issueLoading ? 'Creating...' : 'Create Jira Ticket' }}
+            </button>
+          </form>
+
+          <!-- Close button when success -->
+          <button v-if="issueSuccess" @click="closeIssueModal"
+            class="w-full mt-3 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium">
+            Close
+          </button>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Remediation Slide-Out Panel -->
     <Teleport to="body">

@@ -26,9 +26,9 @@ type Scanner interface {
 
 // Plan tier scanner access
 // Free: 5 categories (basic security)
-// Basic: 10 categories (standard security)
-// Pro: 14 categories (advanced security)
-// Enterprise: 17 categories (full scan)
+// Basic: 13 categories (standard security)
+// Pro: 22 categories (advanced security)
+// Enterprise: 25 categories (full scan)
 var PlanScanners = map[string][]string{
 	"free": { // 5 categories - basic security
 		"ssl",
@@ -37,7 +37,7 @@ var PlanScanners = map[string][]string{
 		"performance",
 		"mixed_content",
 	},
-	"basic": { // 12 categories - standard security
+	"basic": { // 13 categories - standard security
 		"ssl",
 		"headers",
 		"cookies",
@@ -50,8 +50,9 @@ var PlanScanners = map[string][]string{
 		"dns",
 		"mixed_content",
 		"seo",
+		"secrets",
 	},
-	"pro": { // 19 categories - advanced security
+	"pro": { // 22 categories - advanced security
 		"ssl",
 		"headers",
 		"cookies",
@@ -71,8 +72,11 @@ var PlanScanners = map[string][]string{
 		"js_libraries",
 		"wordpress",
 		"xss",
+		"secrets",
+		"subdomains",
+		"tech_stack",
 	},
-	"enterprise": { // 22 categories - full scan
+	"enterprise": { // 25 categories - full scan
 		"ssl",
 		"headers",
 		"cookies",
@@ -95,6 +99,9 @@ var PlanScanners = map[string][]string{
 		"js_libraries",
 		"wordpress",
 		"xss",
+		"secrets",
+		"subdomains",
+		"tech_stack",
 	},
 }
 
@@ -104,7 +111,37 @@ type Engine struct {
 	plan     string
 }
 
-// allScanners returns all 22 registered scanners
+// ScanPolicy defines preset scanning configurations
+type ScanPolicy struct {
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Categories  []string `json:"categories"`
+	Timeout     int      `json:"timeout"` // seconds per target
+}
+
+// ScanPolicies contains the available scan policy presets
+var ScanPolicies = map[string]ScanPolicy{
+	"light": {
+		Name:        "Light Scan",
+		Description: "Quick security check — 8 basic categories, ~30 seconds per site",
+		Categories:  []string{"ssl", "headers", "cookies", "mixed_content", "performance", "dns", "seo", "content"},
+		Timeout:     30,
+	},
+	"standard": {
+		Name:        "Standard Scan",
+		Description: "Comprehensive security audit — 16 categories, ~60 seconds per site",
+		Categories:  []string{"ssl", "headers", "cookies", "server_info", "directory", "performance", "ddos", "cors", "http_methods", "dns", "mixed_content", "info_disclosure", "hosting", "content", "seo", "secrets"},
+		Timeout:     60,
+	},
+	"deep": {
+		Name:        "Deep Scan",
+		Description: "Full security assessment — all categories including XSS, malware, subdomains, ~120 seconds per site",
+		Categories:  []string{"ssl", "headers", "cookies", "server_info", "directory", "performance", "ddos", "cors", "http_methods", "dns", "mixed_content", "info_disclosure", "hosting", "content", "advanced_security", "malware", "threat_intel", "seo", "third_party", "js_libraries", "wordpress", "xss", "secrets", "subdomains", "tech_stack"},
+		Timeout:     120,
+	},
+}
+
+// allScanners returns all registered scanners
 func allScanners() []Scanner {
 	return []Scanner{
 		NewSSLScanner(),
@@ -129,7 +166,31 @@ func allScanners() []Scanner {
 		NewJSLibScanner(),
 		NewWordPressScanner(),
 		NewXSSScanner(),
+		NewSecretsScanner(),
+		NewSubdomainScanner(),
+		NewTechDetectScanner(),
 	}
+}
+
+// NewEngineForPolicy creates a scan engine filtered by scan policy
+func NewEngineForPolicy(policy string) *Engine {
+	p, ok := ScanPolicies[policy]
+	if !ok {
+		p = ScanPolicies["standard"]
+	}
+
+	allowedMap := map[string]bool{}
+	for _, cat := range p.Categories {
+		allowedMap[cat] = true
+	}
+
+	var filtered []Scanner
+	for _, s := range allScanners() {
+		if allowedMap[s.Category()] {
+			filtered = append(filtered, s)
+		}
+	}
+	return &Engine{scanners: filtered, plan: "enterprise"}
 }
 
 // NewEngine creates a scan engine with all scanners (enterprise by default)
@@ -220,6 +281,9 @@ func (e *Engine) RunScan(job *models.ScanJob) {
 	var completedResults []models.ScanResult
 	config.DB.Where("scan_job_id = ?", job.ID).Preload("ScanTarget").Find(&completedResults)
 	services.SendScanCompletedWebhooks(job, completedResults)
+
+	// Send email notifications
+	services.SendScanCompletedEmail(job, completedResults)
 }
 
 func (e *Engine) scanTarget(result *models.ScanResult) {
@@ -252,6 +316,15 @@ func (e *Engine) scanTarget(result *models.ScanResult) {
 	// Populate confidence scores
 	for i := range allChecks {
 		allChecks[i].Confidence = GetConfidence(allChecks[i].CheckName)
+	}
+
+	// Populate CVSS v3.1 scores for failed checks
+	for i := range allChecks {
+		if m := GetCVSSMapping(allChecks[i].CheckName); m != nil && allChecks[i].Status == "fail" {
+			allChecks[i].CVSSScore = m.Score
+			allChecks[i].CVSSVector = m.Vector
+			allChecks[i].CVSSRating = m.Rating
+		}
 	}
 
 	// Save all checks

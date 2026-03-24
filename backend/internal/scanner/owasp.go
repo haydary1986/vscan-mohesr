@@ -554,6 +554,68 @@ var CheckOWASPMap = map[string]OWASPMapping{
 		CWE: "CWE-79", CWEName: "Improper Neutralization of Input During Web Page Generation (XSS)",
 		CVSSBase: "High",
 	},
+
+	// =========================================================================
+	// Secrets Detection Scanner
+	// =========================================================================
+	"API Key Exposure": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-798", CWEName: "Use of Hard-coded Credentials",
+		CVSSBase: "Critical",
+	},
+	"Private Key Exposure": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-312", CWEName: "Cleartext Storage of Sensitive Information",
+		CVSSBase: "Critical",
+	},
+	"Database Connection String Exposure": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-200", CWEName: "Exposure of Sensitive Information to an Unauthorized Actor",
+		CVSSBase: "Critical",
+	},
+	"Email/Password Exposure": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-312", CWEName: "Cleartext Storage of Sensitive Information",
+		CVSSBase: "High",
+	},
+
+	// =========================================================================
+	// Subdomain Discovery Scanner
+	// =========================================================================
+	"Common Subdomain Enumeration": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-16", CWEName: "Configuration",
+		CVSSBase: "Informational",
+	},
+	"Subdomain Security Check": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-16", CWEName: "Configuration",
+		CVSSBase: "Medium",
+	},
+	"Dangling DNS / Subdomain Takeover Risk": {
+		OWASP: "A05:2021", OWASPName: "Security Misconfiguration",
+		CWE: "CWE-16", CWEName: "Configuration",
+		CVSSBase: "High",
+	},
+
+	// =========================================================================
+	// Technology Detection Scanner (informational)
+	// =========================================================================
+	"Web Framework Detection": {
+		OWASP: "", OWASPName: "Informational",
+		CWE: "", CWEName: "",
+		CVSSBase: "Informational",
+	},
+	"Server Technology Detection": {
+		OWASP: "", OWASPName: "Informational",
+		CWE: "CWE-200", CWEName: "Exposure of Sensitive Information to an Unauthorized Actor",
+		CVSSBase: "Informational",
+	},
+	"JavaScript Library Inventory": {
+		OWASP: "", OWASPName: "Informational",
+		CWE: "", CWEName: "",
+		CVSSBase: "Informational",
+	},
 }
 
 // GetOWASPMapping returns the OWASP/CWE mapping for a given check name, or nil if not found.

@@ -175,6 +175,7 @@ func GetScanJob(c *fiber.Ctx) error {
 type StartScanRequest struct {
 	Name      string `json:"name"`
 	TargetIDs []uint `json:"target_ids"`
+	Policy    string `json:"policy"` // light, standard, deep — overrides plan-based engine
 }
 
 func StartScan(c *fiber.Ctx) error {
@@ -261,8 +262,13 @@ func StartScan(c *fiber.Ctx) error {
 		config.DB.Create(&result)
 	}
 
-	// Run scan in background using plan-based engine
-	engine := scanner.NewEngineForPlan(plan)
+	// Run scan in background — use policy-based engine if specified, otherwise plan-based
+	var engine *scanner.Engine
+	if req.Policy != "" {
+		engine = scanner.NewEngineForPolicy(req.Policy)
+	} else {
+		engine = scanner.NewEngineForPlan(plan)
+	}
 	go engine.RunScan(&job)
 
 	return c.Status(201).JSON(job)
