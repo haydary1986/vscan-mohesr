@@ -54,7 +54,8 @@
     "aiChat": "AI Assistant",
     "compare": "Compare",
     "webhooks": "Webhooks",
-    "logout": "Sign Out"
+    "logout": "Sign Out",
+    "docs": "Documentation"
   },
   "landing": {
     "badge": "Website Security Scanning Platform",
@@ -347,5 +348,18 @@
     "basic": "Basic",
     "pro": "Pro",
     "enterprise": "Enterprise"
+  },
+  "docs": {
+    "title": "Documentation Center",
+    "subtitle": "Everything you need to know about VScan",
+    "search": "Search documentation...",
+    "gettingStarted": "Getting Started",
+    "scanners": "Scanners",
+    "scoring": "Scoring System",
+    "reports": "Reports",
+    "apiRef": "API Reference",
+    "integrations": "Integrations",
+    "faq": "FAQ",
+    "print": "Print Page"
   }
 }
