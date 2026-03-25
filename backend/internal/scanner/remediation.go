@@ -2199,4 +2199,2460 @@ add_action('init', function() {
 ` + "```",
 		},
 	}
+
+	// -------------------------------------------------------------------------
+	// 29. Certificate Validity
+	// -------------------------------------------------------------------------
+	RemediationDB["Certificate Validity"] = RemediationGuide{
+		CheckName:    "Certificate Validity",
+		Title:        "Renew or Fix SSL/TLS Certificate",
+		Description:  "An expired or soon-to-expire SSL certificate breaks HTTPS trust, causing browser warnings and blocking visitors.",
+		Priority:     "critical",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Certificate Validity
+
+Cloudflare manages edge certificates automatically. If issues arise:
+
+1. Go to **SSL/TLS** > **Edge Certificates**
+2. Verify **Universal SSL** is enabled
+3. If expired, click **Disable Universal SSL**, wait 30 seconds, then **Enable** again
+4. For **Origin Server**, generate a new origin certificate:
+   - Click **Create Certificate**
+   - Choose hostnames and validity period (up to 15 years)
+   - Install the new certificate on your origin server
+
+> Cloudflare edge certs auto-renew. Issues usually stem from the origin certificate.`,
+
+			"apache": `## Apache - Certificate Renewal
+
+**Using Let's Encrypt (Certbot):**
+
+` + "```bash" + `
+# Install Certbot
+sudo apt install certbot python3-certbot-apache
+
+# Obtain/renew certificate
+sudo certbot --apache -d yourdomain.com -d www.yourdomain.com
+
+# Test auto-renewal
+sudo certbot renew --dry-run
+` + "```" + `
+
+**Enable auto-renewal cron:**
+
+` + "```bash" + `
+echo "0 3 * * * root certbot renew --quiet" | sudo tee /etc/cron.d/certbot-renew
+` + "```",
+
+			"nginx": `## Nginx - Certificate Renewal
+
+**Using Let's Encrypt (Certbot):**
+
+` + "```bash" + `
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain/renew certificate
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Test auto-renewal
+sudo certbot renew --dry-run
+` + "```" + `
+
+Certbot sets up a systemd timer for auto-renewal by default.`,
+
+			"litespeed": `## LiteSpeed - Certificate Renewal
+
+**Via LiteSpeed Admin Console:**
+
+1. Go to **Listeners** > your listener > **SSL**
+2. Upload new certificate and private key
+3. Restart LiteSpeed
+
+**Auto-renewal with Certbot:**
+
+` + "```bash" + `
+sudo certbot certonly --webroot -w /var/www/html -d yourdomain.com
+# Then update LiteSpeed SSL paths and restart
+` + "```",
+
+			"plesk": `## Plesk - Certificate Renewal
+
+1. Go to **Websites & Domains** > your domain
+2. Click **SSL/TLS Certificates**
+3. Click **Install** next to Let's Encrypt
+4. Check **Keep secured** for auto-renewal
+5. Select domain and www subdomain
+6. Click **Get it free**
+
+> Plesk handles Let's Encrypt auto-renewal natively.`,
+
+			"cpanel": `## cPanel - Certificate Renewal
+
+1. Go to **Security** > **SSL/TLS Status**
+2. Select domains with expiring certificates
+3. Click **Run AutoSSL** to renew
+4. If AutoSSL is disabled, go to **SSL/TLS** > **Manage SSL Sites**
+5. Install a new certificate manually or enable AutoSSL:
+   - **WHM** > **Manage AutoSSL** > enable for your account`,
+
+			"wordpress": `## WordPress - Certificate Renewal
+
+SSL is managed at the server level, not WordPress. Follow the guide for your hosting platform above.
+
+**After renewal, verify in WordPress:**
+
+1. Go to **Settings** > **General**
+2. Ensure both URLs start with ` + "`https://`" + `
+3. Install **Really Simple SSL** plugin to fix mixed content issues
+4. Clear any caching plugins after renewal`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 30. CAA Record (Certificate Authority)
+	// -------------------------------------------------------------------------
+	RemediationDB["CAA Record (Certificate Authority)"] = RemediationGuide{
+		CheckName:    "CAA Record (Certificate Authority)",
+		Title:        "Add CAA DNS Record",
+		Description:  "CAA records specify which Certificate Authorities are allowed to issue certificates for your domain, preventing unauthorized issuance.",
+		Priority:     "medium",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Add CAA Record
+
+1. Go to **DNS** > **Records**
+2. Click **Add record**
+3. Set:
+   - **Type**: CAA
+   - **Name**: @ (or your domain)
+   - **Tag**: Only allow specific hostnames
+   - **CA domain name**: ` + "`letsencrypt.org`" + `
+4. Add another CAA record for any other CA you use (e.g., ` + "`digicert.com`" + `)
+5. Click **Save**
+
+> Add a CAA record with tag ` + "`iodef`" + ` to receive violation reports via email.`,
+
+			"apache": `## Apache / General DNS - Add CAA Record
+
+CAA records are set in DNS, not in Apache. Add these records at your DNS provider:
+
+` + "```" + `
+yourdomain.com.  IN  CAA  0 issue "letsencrypt.org"
+yourdomain.com.  IN  CAA  0 issuewild "letsencrypt.org"
+yourdomain.com.  IN  CAA  0 iodef "mailto:security@yourdomain.com"
+` + "```" + `
+
+**Verify with:**
+
+` + "```bash" + `
+dig CAA yourdomain.com
+` + "```",
+
+			"nginx": `## Nginx / General DNS - Add CAA Record
+
+CAA records are set in DNS, not in Nginx. Add at your DNS provider:
+
+` + "```" + `
+yourdomain.com.  IN  CAA  0 issue "letsencrypt.org"
+yourdomain.com.  IN  CAA  0 issuewild "letsencrypt.org"
+yourdomain.com.  IN  CAA  0 iodef "mailto:security@yourdomain.com"
+` + "```" + `
+
+Replace ` + "`letsencrypt.org`" + ` with your actual CA. Common values: ` + "`digicert.com`" + `, ` + "`sectigo.com`" + `, ` + "`letsencrypt.org`" + `.`,
+
+			"litespeed": `## LiteSpeed / General DNS
+
+CAA records are configured in your DNS provider, not LiteSpeed. See the Apache/Nginx guide for DNS record format.`,
+
+			"plesk": `## Plesk - Add CAA Record
+
+1. Go to **Websites & Domains** > your domain
+2. Click **DNS Settings**
+3. Click **Add Record**
+4. Select type **CAA**
+5. Set **Flag**: 0, **Tag**: issue, **Value**: ` + "`letsencrypt.org`" + `
+6. Add additional records for ` + "`issuewild`" + ` and ` + "`iodef`" + `
+7. Click **OK** and **Apply**`,
+
+			"cpanel": `## cPanel - Add CAA Record
+
+1. Go to **Domains** > **Zone Editor**
+2. Click **Manage** next to your domain
+3. Click **Add Record** > **Add CAA Record**
+4. Set:
+   - **Flag**: 0
+   - **Tag**: issue
+   - **Value**: ` + "`letsencrypt.org`" + `
+5. Add another for ` + "`issuewild`" + ` and ` + "`iodef`" + `
+6. Click **Save**`,
+
+			"wordpress": `## WordPress - CAA Record
+
+CAA records are DNS-level settings, not WordPress settings. Configure them at your domain registrar or DNS provider (Cloudflare, cPanel, Plesk, etc.).
+
+**Recommended records:**
+- ` + "`0 issue \"letsencrypt.org\"`" + ` (allow Let's Encrypt)
+- ` + "`0 issuewild \"letsencrypt.org\"`" + ` (allow wildcard certs)
+- ` + "`0 iodef \"mailto:you@yourdomain.com\"`" + ` (violation reports)`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 31. CMS Detection
+	// -------------------------------------------------------------------------
+	RemediationDB["CMS Detection"] = RemediationGuide{
+		CheckName:    "CMS Detection",
+		Title:        "Hide CMS Fingerprint",
+		Description:  "Exposing your CMS type and version helps attackers find known vulnerabilities. Hiding these fingerprints reduces your attack surface.",
+		Priority:     "medium",
+		TimeEstimate: "15 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Hide CMS Fingerprint
+
+Use a **Transform Rule** to strip revealing headers:
+
+1. Go to **Rules** > **Transform Rules** > **Modify Response Header**
+2. Create rules to **Remove** these headers:
+   - ` + "`X-Powered-By`" + `
+   - ` + "`X-Generator`" + `
+3. Use a **Worker** to remove CMS meta tags from HTML responses if needed.`,
+
+			"apache": `## Apache - Hide CMS Fingerprint
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+# Remove server signature
+ServerSignature Off
+
+# Remove X-Powered-By
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    Header unset X-Generator
+</IfModule>
+
+# Block access to common CMS fingerprint files
+<FilesMatch "(readme\.html|license\.txt|changelog\.txt)$">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"nginx": `## Nginx - Hide CMS Fingerprint
+
+Add to your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+# Hide server version
+server_tokens off;
+
+# Remove revealing headers
+proxy_hide_header X-Powered-By;
+proxy_hide_header X-Generator;
+
+# Block fingerprint files
+location ~* (readme\.html|license\.txt|changelog\.txt)$ {
+    return 404;
+}
+` + "```" + `
+
+Then reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Hide CMS Fingerprint
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+ServerSignature Off
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+    Header unset X-Generator
+</IfModule>
+<FilesMatch "(readme\.html|license\.txt|changelog\.txt)$">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"plesk": `## Plesk - Hide CMS Fingerprint
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+   ` + "`Header unset X-Powered-By`" + `
+3. Add to **Additional nginx directives**:
+   ` + "`proxy_hide_header X-Powered-By;`" + `
+4. Click **Apply**`,
+
+			"cpanel": `## cPanel - Hide CMS Fingerprint
+
+1. Open **File Manager** > navigate to document root
+2. Edit ` + "`" + `.htaccess` + "`" + ` and add:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+</IfModule>
+<FilesMatch "(readme\.html|license\.txt|changelog\.txt)$">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"wordpress": `## WordPress - Hide CMS Fingerprint
+
+Add to your theme's ` + "`functions.php`" + ` or a custom plugin:
+
+` + "```php" + `
+// Remove WordPress version from head and feeds
+remove_action('wp_head', 'wp_generator');
+
+// Remove version from scripts and styles
+add_filter('style_loader_src', function($src) { return remove_query_arg('ver', $src); });
+add_filter('script_loader_src', function($src) { return remove_query_arg('ver', $src); });
+
+// Remove X-Powered-By
+header_remove('X-Powered-By');
+` + "```" + `
+
+Also delete or block ` + "`readme.html`" + ` and ` + "`license.txt`" + ` from your WordPress root.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 32. CDN/DDoS Protection Service
+	// -------------------------------------------------------------------------
+	RemediationDB["CDN/DDoS Protection Service"] = RemediationGuide{
+		CheckName:    "CDN/DDoS Protection Service",
+		Title:        "Enable CDN and DDoS Protection",
+		Description:  "A CDN improves performance and protects against DDoS attacks by distributing traffic across global edge servers.",
+		Priority:     "high",
+		TimeEstimate: "30 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - CDN/DDoS Protection
+
+If you already use Cloudflare, ensure protection is active:
+
+1. Verify your DNS records show **Proxied** (orange cloud icon)
+2. Go to **Security** > **DDoS** and review settings
+3. Enable **Bot Fight Mode** under **Security** > **Bots**
+4. Set **Security Level** to **Medium** or higher under **Security** > **Settings**
+5. Enable **Browser Integrity Check**
+
+> Records showing "DNS only" (grey cloud) bypass Cloudflare protection.`,
+
+			"apache": `## Apache - Enable Cloudflare CDN (Free)
+
+1. Sign up at [cloudflare.com](https://cloudflare.com) (free plan available)
+2. Add your domain and follow the setup wizard
+3. Update your domain's nameservers to Cloudflare's
+4. Wait for DNS propagation (up to 24 hours)
+5. Once active, install ` + "`mod_cloudflare`" + ` to restore real visitor IPs:
+
+` + "```bash" + `
+sudo apt install libapache2-mod-cloudflare
+sudo systemctl restart apache2
+` + "```",
+
+			"nginx": `## Nginx - Enable Cloudflare CDN (Free)
+
+1. Sign up at [cloudflare.com](https://cloudflare.com)
+2. Add your domain and update nameservers
+3. Restore real visitor IPs in Nginx:
+
+` + "```nginx" + `
+# Add Cloudflare IP ranges to restore real IPs
+set_real_ip_from 103.21.244.0/22;
+set_real_ip_from 103.22.200.0/22;
+set_real_ip_from 173.245.48.0/20;
+# ... add all Cloudflare ranges from https://www.cloudflare.com/ips/
+real_ip_header CF-Connecting-IP;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Enable Cloudflare CDN
+
+1. Sign up at [cloudflare.com](https://cloudflare.com) and add your domain
+2. Update nameservers at your registrar
+3. LiteSpeed handles Cloudflare IPs automatically with its built-in real IP module
+4. Verify: Go to **LiteSpeed Admin** > **Server** > **General** > enable **Use Client IP in Header**`,
+
+			"plesk": `## Plesk - Enable Cloudflare CDN
+
+1. In Plesk, go to **Extensions** > search **Cloudflare**
+2. Install the **Cloudflare** extension
+3. Log in with your Cloudflare account
+4. Enable Cloudflare for your domain
+5. Alternatively, set up manually at cloudflare.com and update nameservers`,
+
+			"cpanel": `## cPanel - Enable Cloudflare CDN
+
+**Option 1: cPanel Cloudflare Plugin** (if available)
+
+1. Go to **Software** > **Cloudflare**
+2. Create or link your Cloudflare account
+3. Enable for your domain
+
+**Option 2: Manual Setup**
+
+1. Sign up at [cloudflare.com](https://cloudflare.com)
+2. Add your domain and change nameservers
+3. Ask your hosting provider to install mod_cloudflare for real IP restoration`,
+
+			"wordpress": `## WordPress - Enable CDN/DDoS Protection
+
+1. Sign up at [cloudflare.com](https://cloudflare.com) (free plan)
+2. Add your domain and update nameservers
+3. Install the **Cloudflare** WordPress plugin:
+   - **Plugins** > **Add New** > search "Cloudflare"
+   - Activate and enter your API token
+4. Enable **Automatic Platform Optimization (APO)** for best WordPress performance
+
+> The free Cloudflare plan includes DDoS protection, CDN, and basic WAF.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 33. Cookie Security
+	// -------------------------------------------------------------------------
+	RemediationDB["Cookie Security"] = RemediationGuide{
+		CheckName:    "Cookie Security",
+		Title:        "Set Secure Cookie Flags",
+		Description:  "Cookies without Secure, HttpOnly, and SameSite flags are vulnerable to interception, XSS theft, and CSRF attacks.",
+		Priority:     "high",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Cookie Security
+
+Cloudflare cannot modify application-set cookies directly. However:
+
+1. Go to **Rules** > **Transform Rules** > **Modify Response Header**
+2. Use a **Worker** to rewrite ` + "`Set-Cookie`" + ` headers adding flags:
+
+` + "```javascript" + `
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+  const response = await fetch(request);
+  const newResponse = new Response(response.body, response);
+  const cookies = newResponse.headers.getAll('Set-Cookie');
+  newResponse.headers.delete('Set-Cookie');
+  for (const cookie of cookies) {
+    let secured = cookie;
+    if (!cookie.includes('Secure')) secured += '; Secure';
+    if (!cookie.includes('HttpOnly')) secured += '; HttpOnly';
+    if (!cookie.includes('SameSite')) secured += '; SameSite=Lax';
+    newResponse.headers.append('Set-Cookie', secured);
+  }
+  return newResponse;
+}
+` + "```",
+
+			"apache": `## Apache - Cookie Security
+
+Add to ` + "`" + `.htaccess` + "`" + ` or virtual host:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    # Add Secure and HttpOnly to all cookies
+    Header always edit Set-Cookie ^(.*)$ "$1; Secure; HttpOnly; SameSite=Lax"
+</IfModule>
+` + "```" + `
+
+Enable ` + "`mod_headers`" + `: ` + "`sudo a2enmod headers && sudo systemctl restart apache2`" + ``,
+
+			"nginx": `## Nginx - Cookie Security
+
+Add to your ` + "`server`" + ` or ` + "`location`" + ` block:
+
+` + "```nginx" + `
+# For proxied applications
+proxy_cookie_flags ~ secure httponly samesite=lax;
+
+# Or via header manipulation
+more_set_headers 'Set-Cookie: $sent_http_set_cookie; Secure; HttpOnly; SameSite=Lax';
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + `
+
+> ` + "`proxy_cookie_flags`" + ` requires nginx 1.19.3+.`,
+
+			"litespeed": `## LiteSpeed - Cookie Security
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always edit Set-Cookie ^(.*)$ "$1; Secure; HttpOnly; SameSite=Lax"
+</IfModule>
+` + "```",
+
+			"plesk": `## Plesk - Cookie Security
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. In **Additional Apache directives**, add:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always edit Set-Cookie ^(.*)$ "$1; Secure; HttpOnly; SameSite=Lax"
+</IfModule>
+` + "```" + `
+
+3. Click **Apply**`,
+
+			"cpanel": `## cPanel - Cookie Security
+
+Edit ` + "`" + `.htaccess` + "`" + ` in your document root:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always edit Set-Cookie ^(.*)$ "$1; Secure; HttpOnly; SameSite=Lax"
+</IfModule>
+` + "```",
+
+			"wordpress": `## WordPress - Cookie Security
+
+**Option 1: wp-config.php**
+
+Add before "That's all, stop editing!":
+
+` + "```php" + `
+@ini_set('session.cookie_httponly', true);
+@ini_set('session.cookie_secure', true);
+@ini_set('session.cookie_samesite', 'Lax');
+` + "```" + `
+
+**Option 2: functions.php**
+
+` + "```php" + `
+add_action('init', function() {
+    if (PHP_VERSION_ID >= 70300) {
+        ini_set('session.cookie_samesite', 'Lax');
+    }
+}, 1);
+` + "```" + `
+
+**Option 3:** Install **HTTP Headers** plugin and configure cookie flags.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 34. Cross-Origin-Embedder-Policy
+	// -------------------------------------------------------------------------
+	RemediationDB["Cross-Origin-Embedder-Policy"] = RemediationGuide{
+		CheckName:    "Cross-Origin-Embedder-Policy",
+		Title:        "Set Cross-Origin-Embedder-Policy Header",
+		Description:  "COEP prevents loading cross-origin resources that don't explicitly grant permission, enabling features like SharedArrayBuffer.",
+		Priority:     "low",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - COEP Header
+
+1. Go to **Rules** > **Transform Rules** > **Modify Response Header**
+2. Click **Create rule**
+3. Set:
+   - **Header name**: ` + "`Cross-Origin-Embedder-Policy`" + `
+   - **Value**: ` + "`require-corp`" + `
+4. Deploy
+
+> **Warning**: This can break third-party resources (images, scripts, iframes). Test with ` + "`credentialless`" + ` first.`,
+
+			"apache": `## Apache - COEP Header
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Embedder-Policy "require-corp"
+</IfModule>
+` + "```" + `
+
+> **Warning for WordPress/CMS sites**: This header can break third-party embeds, images, and scripts. Use ` + "`credentialless`" + ` instead of ` + "`require-corp`" + ` if you load external resources.`,
+
+			"nginx": `## Nginx - COEP Header
+
+Add inside your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+add_header Cross-Origin-Embedder-Policy "require-corp" always;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + `
+
+> **Warning**: Use ` + "`credentialless`" + ` instead of ` + "`require-corp`" + ` if your site loads third-party resources.`,
+
+			"litespeed": `## LiteSpeed - COEP Header
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Embedder-Policy "require-corp"
+</IfModule>
+` + "```",
+
+			"plesk": `## Plesk - COEP Header
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+   ` + "`Header always set Cross-Origin-Embedder-Policy \"require-corp\"`" + `
+3. Click **Apply**`,
+
+			"cpanel": `## cPanel - COEP Header
+
+Edit ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Embedder-Policy "require-corp"
+</IfModule>
+` + "```",
+
+			"wordpress": `## WordPress - COEP Header
+
+> **Warning**: ` + "`require-corp`" + ` will likely break WordPress sites that use external images, embeds, or CDNs. Use ` + "`credentialless`" + ` instead.
+
+` + "```php" + `
+add_action('send_headers', function() {
+    header('Cross-Origin-Embedder-Policy: credentialless');
+});
+` + "```" + `
+
+Or use the **HTTP Headers** plugin to add the header with a safe value.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 35. Cross-Origin-Opener-Policy
+	// -------------------------------------------------------------------------
+	RemediationDB["Cross-Origin-Opener-Policy"] = RemediationGuide{
+		CheckName:    "Cross-Origin-Opener-Policy",
+		Title:        "Set Cross-Origin-Opener-Policy Header",
+		Description:  "COOP isolates your browsing context, preventing cross-origin documents from accessing your window object.",
+		Priority:     "low",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - COOP Header
+
+1. Go to **Rules** > **Transform Rules** > **Modify Response Header**
+2. Click **Create rule**
+3. Set:
+   - **Header name**: ` + "`Cross-Origin-Opener-Policy`" + `
+   - **Value**: ` + "`same-origin`" + `
+4. Deploy`,
+
+			"apache": `## Apache - COOP Header
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+</IfModule>
+` + "```",
+
+			"nginx": `## Nginx - COOP Header
+
+Add inside your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+add_header Cross-Origin-Opener-Policy "same-origin" always;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - COOP Header
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+</IfModule>
+` + "```",
+
+			"plesk": `## Plesk - COOP Header
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+   ` + "`Header always set Cross-Origin-Opener-Policy \"same-origin\"`" + `
+3. Click **Apply**`,
+
+			"cpanel": `## cPanel - COOP Header
+
+Edit ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+</IfModule>
+` + "```",
+
+			"wordpress": `## WordPress - COOP Header
+
+` + "```php" + `
+add_action('send_headers', function() {
+    header('Cross-Origin-Opener-Policy: same-origin');
+});
+` + "```" + `
+
+Or use the **HTTP Headers** plugin.
+
+> This is generally safe for WordPress sites. Use ` + "`same-origin-allow-popups`" + ` if you use OAuth popups or payment gateways.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 36. Cross-Origin-Resource-Policy
+	// -------------------------------------------------------------------------
+	RemediationDB["Cross-Origin-Resource-Policy"] = RemediationGuide{
+		CheckName:    "Cross-Origin-Resource-Policy",
+		Title:        "Set Cross-Origin-Resource-Policy Header",
+		Description:  "CORP prevents other origins from reading your resources, protecting against speculative side-channel attacks like Spectre.",
+		Priority:     "low",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - CORP Header
+
+1. Go to **Rules** > **Transform Rules** > **Modify Response Header**
+2. Click **Create rule**
+3. Set:
+   - **Header name**: ` + "`Cross-Origin-Resource-Policy`" + `
+   - **Value**: ` + "`same-origin`" + ` (or ` + "`cross-origin`" + ` if resources are shared)
+4. Deploy`,
+
+			"apache": `## Apache - CORP Header
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+</IfModule>
+` + "```" + `
+
+> Use ` + "`cross-origin`" + ` if your resources need to be loaded by other sites (e.g., CDN, public API).`,
+
+			"nginx": `## Nginx - CORP Header
+
+Add inside your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+add_header Cross-Origin-Resource-Policy "same-origin" always;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - CORP Header
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+</IfModule>
+` + "```",
+
+			"plesk": `## Plesk - CORP Header
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+   ` + "`Header always set Cross-Origin-Resource-Policy \"same-origin\"`" + `
+3. Click **Apply**`,
+
+			"cpanel": `## cPanel - CORP Header
+
+Edit ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+</IfModule>
+` + "```",
+
+			"wordpress": `## WordPress - CORP Header
+
+` + "```php" + `
+add_action('send_headers', function() {
+    header('Cross-Origin-Resource-Policy: same-origin');
+});
+` + "```" + `
+
+> Use ` + "`cross-origin`" + ` if your site serves images/fonts used by other domains, or if you use a CDN.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 37. OCSP Stapling
+	// -------------------------------------------------------------------------
+	RemediationDB["OCSP Stapling"] = RemediationGuide{
+		CheckName:    "OCSP Stapling",
+		Title:        "Enable OCSP Stapling",
+		Description:  "OCSP Stapling improves SSL/TLS handshake speed and privacy by having the server provide certificate revocation status directly.",
+		Priority:     "medium",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - OCSP Stapling
+
+Cloudflare enables OCSP Stapling automatically for all edge certificates. No action needed.
+
+To verify, go to **SSL/TLS** > **Edge Certificates** and confirm your certificate is active.`,
+
+			"apache": `## Apache - Enable OCSP Stapling
+
+Add to your virtual host or ` + "`ssl.conf`" + `:
+
+` + "```apache" + `
+SSLUseStapling On
+SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
+SSLStaplingResponderTimeout 5
+SSLStaplingReturnResponderErrors off
+` + "```" + `
+
+Restart: ` + "`sudo systemctl restart apache2`" + `
+
+**Verify:**
+
+` + "```bash" + `
+openssl s_client -connect yourdomain.com:443 -status </dev/null 2>&1 | grep -i "OCSP Response Status"
+` + "```",
+
+			"nginx": `## Nginx - Enable OCSP Stapling
+
+Add inside your ` + "`server`" + ` block (HTTPS):
+
+` + "```nginx" + `
+ssl_stapling on;
+ssl_stapling_verify on;
+ssl_trusted_certificate /etc/letsencrypt/live/yourdomain.com/chain.pem;
+resolver 8.8.8.8 8.8.4.4 valid=300s;
+resolver_timeout 5s;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + `
+
+**Verify:**
+
+` + "```bash" + `
+openssl s_client -connect yourdomain.com:443 -status </dev/null 2>&1 | grep -i "OCSP Response Status"
+` + "```",
+
+			"litespeed": `## LiteSpeed - Enable OCSP Stapling
+
+1. Go to **LiteSpeed Admin** > **Listeners** > your listener > **SSL**
+2. Set **OCSP Stapling** to **Yes**
+3. Optionally set **OCSP Responder** to your CA's OCSP URL
+4. Restart LiteSpeed
+
+Or add to your virtual host config:
+` + "`stapling: 1`" + ``,
+
+			"plesk": `## Plesk - Enable OCSP Stapling
+
+1. Go to **Tools & Settings** > **SSL/TLS Certificates**
+2. Or configure in the web server config:
+   - For Apache: Add ` + "`SSLUseStapling On`" + ` in additional directives
+   - For Nginx: Add ` + "`ssl_stapling on;`" + ` in additional directives
+3. Apply and restart web server`,
+
+			"cpanel": `## cPanel - Enable OCSP Stapling
+
+1. Access **WHM** (requires root)
+2. Go to **Service Configuration** > **Apache Configuration** > **Global Configuration**
+3. Add to the SSL configuration:
+   ` + "`SSLUseStapling On`" + `
+4. Or edit ` + "`/etc/apache2/conf.d/ssl.conf`" + ` manually and add:
+
+` + "```apache" + `
+SSLUseStapling On
+SSLStaplingCache shmcb:/tmp/stapling_cache(128000)
+` + "```" + `
+
+5. Restart Apache: ` + "`sudo systemctl restart httpd`" + ``,
+
+			"wordpress": `## WordPress - OCSP Stapling
+
+OCSP Stapling is configured at the web server level, not WordPress.
+
+Follow the guide for your server (Apache, Nginx, or LiteSpeed) above. If you are on shared hosting, contact your host to enable OCSP Stapling.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 38. Compression Ratio
+	// -------------------------------------------------------------------------
+	RemediationDB["Compression Ratio"] = RemediationGuide{
+		CheckName:    "Compression Ratio",
+		Title:        "Enable Gzip/Brotli Compression",
+		Description:  "Compression reduces page load times and bandwidth usage by compressing responses before sending them to the browser.",
+		Priority:     "medium",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Enable Compression
+
+Cloudflare compresses responses automatically. To verify:
+
+1. Go to **Speed** > **Optimization** > **Content Optimization**
+2. Ensure **Brotli** is enabled (on by default)
+3. Cloudflare also applies Gzip automatically
+
+> If compression ratio is still low, ensure your origin server is not sending pre-compressed responses that conflict.`,
+
+			"apache": `## Apache - Enable Gzip Compression
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css
+    AddOutputFilterByType DEFLATE text/javascript application/javascript application/json
+    AddOutputFilterByType DEFLATE text/xml application/xml application/xhtml+xml
+    AddOutputFilterByType DEFLATE image/svg+xml application/font-woff application/font-woff2
+</IfModule>
+` + "```" + `
+
+Enable mod_deflate: ` + "`sudo a2enmod deflate && sudo systemctl restart apache2`" + ``,
+
+			"nginx": `## Nginx - Enable Gzip and Brotli
+
+Add to ` + "`http`" + ` block in ` + "`nginx.conf`" + `:
+
+` + "```nginx" + `
+# Gzip
+gzip on;
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+
+# Brotli (if module installed)
+brotli on;
+brotli_comp_level 6;
+brotli_types text/plain text/css application/json application/javascript text/xml application/xml image/svg+xml;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Enable Compression
+
+1. Go to **LiteSpeed Admin** > **Server Configuration** > **Tuning**
+2. Under **Enable GZIP Compression**: set to **Yes**
+3. Set **Compressible Types** to:
+   ` + "`text/*, application/javascript, application/json, application/xml, image/svg+xml`" + `
+
+Or add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json
+</IfModule>
+` + "```",
+
+			"plesk": `## Plesk - Enable Compression
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Enable **nginx gzip compression** checkbox
+3. Or add to **Additional Apache directives**:
+
+` + "```apache" + `
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json
+</IfModule>
+` + "```" + `
+
+4. Click **Apply**`,
+
+			"cpanel": `## cPanel - Enable Compression
+
+1. Go to **Software** > **Optimize Website**
+2. Select **Compress All Content**
+3. Click **Update Settings**
+
+Or edit ` + "`" + `.htaccess` + "`" + ` manually:
+
+` + "```apache" + `
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json text/xml
+</IfModule>
+` + "```",
+
+			"wordpress": `## WordPress - Enable Compression
+
+**Option 1: Plugin**
+
+Install **WP Super Cache**, **W3 Total Cache**, or **LiteSpeed Cache** - all support Gzip compression.
+
+**Option 2: .htaccess**
+
+Add to ` + "`" + `.htaccess` + "`" + ` (before WordPress rules):
+
+` + "```apache" + `
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css
+    AddOutputFilterByType DEFLATE application/javascript application/json text/xml
+</IfModule>
+` + "```",
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 39. Meta Tags Quality
+	// -------------------------------------------------------------------------
+	RemediationDB["Meta Tags Quality"] = RemediationGuide{
+		CheckName:    "Meta Tags Quality",
+		Title:        "Add Proper HTML Meta Tags",
+		Description:  "Proper meta tags improve SEO rankings, social sharing previews, and browser behavior.",
+		Priority:     "low",
+		TimeEstimate: "15 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare
+
+Meta tags are set in your HTML, not at the CDN level. Modify your site's source code or CMS settings.`,
+
+			"apache": `## Apache / Static Sites
+
+Add these meta tags inside ` + "`<head>`" + ` in your HTML files:
+
+` + "```html" + `
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Your page description (150-160 characters)">
+<meta name="keywords" content="keyword1, keyword2, keyword3">
+<meta name="author" content="Your Name or Organization">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://yourdomain.com/page-url">
+` + "```",
+
+			"nginx": `## Nginx / Static Sites
+
+Meta tags are set in HTML source, not Nginx config. Edit your HTML ` + "`<head>`" + ` to include:
+
+` + "```html" + `
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Page description (150-160 chars)">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://yourdomain.com/page-url">
+` + "```",
+
+			"litespeed": `## LiteSpeed
+
+Meta tags are set in your HTML source. See the Apache/static site guide for the required meta tags.`,
+
+			"plesk": `## Plesk
+
+Edit your site's HTML files via **File Manager** or your CMS to include proper meta tags in the ` + "`<head>`" + ` section.`,
+
+			"cpanel": `## cPanel
+
+Use **File Manager** to edit your HTML files. Add meta tags in the ` + "`<head>`" + ` section of each page.`,
+
+			"wordpress": `## WordPress - Meta Tags
+
+**Option 1: SEO Plugin (Recommended)**
+
+Install **Yoast SEO** or **Rank Math**:
+1. **Plugins** > **Add New** > search "Yoast SEO" or "Rank Math"
+2. Activate and run the setup wizard
+3. Edit each page/post and fill in the **SEO title** and **meta description** fields
+
+**Option 2: Theme functions**
+
+` + "```php" + `
+add_action('wp_head', function() {
+    if (is_front_page()) {
+        echo '<meta name="description" content="Your site description">';
+    }
+});
+` + "```",
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 40. Open Graph Tags
+	// -------------------------------------------------------------------------
+	RemediationDB["Open Graph Tags"] = RemediationGuide{
+		CheckName:    "Open Graph Tags",
+		Title:        "Add Open Graph Meta Tags",
+		Description:  "Open Graph tags control how your pages appear when shared on social media platforms like Facebook, LinkedIn, and Twitter.",
+		Priority:     "low",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare
+
+Open Graph tags must be set in your HTML source code, not at the CDN level.`,
+
+			"apache": `## Apache / Static Sites
+
+Add inside ` + "`<head>`" + `:
+
+` + "```html" + `
+<meta property="og:title" content="Page Title">
+<meta property="og:description" content="Brief description of the page">
+<meta property="og:image" content="https://yourdomain.com/image.jpg">
+<meta property="og:url" content="https://yourdomain.com/page-url">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Your Site Name">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Page Title">
+<meta name="twitter:description" content="Brief description">
+<meta name="twitter:image" content="https://yourdomain.com/image.jpg">
+` + "```",
+
+			"nginx": `## Nginx / Static Sites
+
+Add OG tags in your HTML ` + "`<head>`" + `. See the Apache guide for the complete list of recommended OG tags.`,
+
+			"litespeed": `## LiteSpeed
+
+Open Graph tags are set in HTML, not server config. See the Apache guide for required tags.`,
+
+			"plesk": `## Plesk
+
+Edit your HTML files to add Open Graph tags in the ` + "`<head>`" + ` section.`,
+
+			"cpanel": `## cPanel
+
+Edit your HTML files via **File Manager** to add OG meta tags.`,
+
+			"wordpress": `## WordPress - Open Graph Tags
+
+**Option 1: SEO Plugin (Recommended)**
+
+**Yoast SEO** or **Rank Math** automatically generate OG tags:
+1. Install and activate the plugin
+2. Go to **SEO** > **Social** and configure your default image
+3. Edit each page/post to customize OG title, description, and image
+
+**Option 2: functions.php**
+
+` + "```php" + `
+add_action('wp_head', function() {
+    if (is_singular()) {
+        $title = get_the_title();
+        $desc = get_the_excerpt();
+        $image = get_the_post_thumbnail_url(null, 'large');
+        $url = get_permalink();
+        echo "<meta property=\"og:title\" content=\"$title\">\n";
+        echo "<meta property=\"og:description\" content=\"$desc\">\n";
+        if ($image) echo "<meta property=\"og:image\" content=\"$image\">\n";
+        echo "<meta property=\"og:url\" content=\"$url\">\n";
+        echo "<meta property=\"og:type\" content=\"article\">\n";
+    }
+});
+` + "```",
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 41. Sitemap Accessibility
+	// -------------------------------------------------------------------------
+	RemediationDB["Sitemap Accessibility"] = RemediationGuide{
+		CheckName:    "Sitemap Accessibility",
+		Title:        "Create and Configure XML Sitemap",
+		Description:  "An XML sitemap helps search engines discover and index all pages on your site efficiently.",
+		Priority:     "low",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare
+
+Sitemaps must be generated by your application/CMS. Cloudflare does not generate sitemaps.`,
+
+			"apache": `## Apache / Static Sites
+
+1. Create ` + "`sitemap.xml`" + ` in your document root:
+
+` + "```xml" + `
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://yourdomain.com/</loc>
+    <lastmod>2024-01-01</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://yourdomain.com/about</loc>
+    <lastmod>2024-01-01</lastmod>
+    <priority>0.8</priority>
+  </url>
+</urlset>
+` + "```" + `
+
+2. Reference it in ` + "`robots.txt`" + `: ` + "`Sitemap: https://yourdomain.com/sitemap.xml`" + `
+3. Submit to [Google Search Console](https://search.google.com/search-console)`,
+
+			"nginx": `## Nginx / Static Sites
+
+1. Create ` + "`sitemap.xml`" + ` in your document root (see Apache guide for format)
+2. Ensure Nginx serves it with correct content type:
+
+` + "```nginx" + `
+location = /sitemap.xml {
+    types { application/xml xml; }
+    default_type application/xml;
+}
+` + "```" + `
+
+3. Add ` + "`Sitemap: https://yourdomain.com/sitemap.xml`" + ` to ` + "`robots.txt`" + ``,
+
+			"litespeed": `## LiteSpeed
+
+Create ` + "`sitemap.xml`" + ` in your document root. LiteSpeed serves it automatically. See the Apache guide for the XML format.`,
+
+			"plesk": `## Plesk
+
+1. Use **SEO Toolkit** (if available) to auto-generate a sitemap
+2. Or manually create ` + "`sitemap.xml`" + ` in your document root via **File Manager**
+3. Submit to Google Search Console`,
+
+			"cpanel": `## cPanel
+
+1. Create ` + "`sitemap.xml`" + ` in your ` + "`public_html`" + ` via **File Manager**
+2. Use a sitemap generator tool (e.g., xml-sitemaps.com) for large sites
+3. Add reference in ` + "`robots.txt`" + `: ` + "`Sitemap: https://yourdomain.com/sitemap.xml`" + ``,
+
+			"wordpress": `## WordPress - Sitemap
+
+**WordPress 5.5+ includes a built-in sitemap** at ` + "`/wp-sitemap.xml`" + `.
+
+**For more control, use a plugin:**
+
+1. Install **Yoast SEO** or **Rank Math**
+2. Both auto-generate comprehensive XML sitemaps
+3. Go to **SEO** > **General** > **Features** and ensure XML Sitemaps are enabled
+4. Submit ` + "`https://yourdomain.com/sitemap_index.xml`" + ` to Google Search Console`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 42. Robots.txt Quality
+	// -------------------------------------------------------------------------
+	RemediationDB["Robots.txt Quality"] = RemediationGuide{
+		CheckName:    "Robots.txt Quality",
+		Title:        "Configure Robots.txt Properly",
+		Description:  "A well-configured robots.txt guides search engines on which pages to crawl and index, improving SEO and protecting private areas.",
+		Priority:     "low",
+		TimeEstimate: "10 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare
+
+Robots.txt is served from your origin server. Cloudflare passes it through without modification.`,
+
+			"apache": `## Apache / Static Sites
+
+Create ` + "`robots.txt`" + ` in your document root:
+
+` + "```" + `
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Disallow: /tmp/
+
+Sitemap: https://yourdomain.com/sitemap.xml
+` + "```" + `
+
+**Best practices:**
+- Do not block CSS/JS files (breaks rendering for crawlers)
+- Always include a Sitemap directive
+- Do not use robots.txt to hide sensitive URLs (use authentication instead)
+- Test at [Google Robots Testing Tool](https://support.google.com/webmasters/answer/6062598)`,
+
+			"nginx": `## Nginx / Static Sites
+
+Create ` + "`robots.txt`" + ` in your document root. See Apache guide for content format.
+
+Ensure Nginx serves it:
+
+` + "```nginx" + `
+location = /robots.txt {
+    allow all;
+    log_not_found off;
+    access_log off;
+}
+` + "```",
+
+			"litespeed": `## LiteSpeed
+
+Create ` + "`robots.txt`" + ` in your document root. LiteSpeed serves it automatically. See the Apache guide for best practices.`,
+
+			"plesk": `## Plesk
+
+1. Go to **Websites & Domains** > your domain > **SEO Toolkit** (if available)
+2. Or create ` + "`robots.txt`" + ` manually via **File Manager** in the document root`,
+
+			"cpanel": `## cPanel
+
+1. Use **File Manager** to create ` + "`robots.txt`" + ` in ` + "`public_html`" + `
+2. Follow the best practices in the Apache guide above`,
+
+			"wordpress": `## WordPress - Robots.txt
+
+WordPress generates a virtual ` + "`robots.txt`" + ` automatically. To customize:
+
+**Option 1: SEO Plugin (Recommended)**
+
+1. Install **Yoast SEO** or **Rank Math**
+2. Go to **SEO** > **Tools** > **File Editor**
+3. Edit ` + "`robots.txt`" + ` with custom rules
+
+**Option 2: Physical file**
+
+Create ` + "`robots.txt`" + ` in your WordPress root (overrides virtual):
+
+` + "```" + `
+User-agent: *
+Allow: /
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+Sitemap: https://yourdomain.com/sitemap_index.xml
+` + "```",
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 43. Structured Data
+	// -------------------------------------------------------------------------
+	RemediationDB["Structured Data"] = RemediationGuide{
+		CheckName:    "Structured Data",
+		Title:        "Add Structured Data (JSON-LD Schema)",
+		Description:  "Structured data helps search engines understand your content, enabling rich snippets in search results.",
+		Priority:     "low",
+		TimeEstimate: "20 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare
+
+Structured data must be added to your HTML source. Cloudflare Workers can inject it dynamically if needed.`,
+
+			"apache": `## Apache / Static Sites
+
+Add JSON-LD structured data inside ` + "`<head>`" + ` or before ` + "`</body>`" + `:
+
+` + "```html" + `
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Your Organization",
+  "url": "https://yourdomain.com",
+  "logo": "https://yourdomain.com/logo.png",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+1-XXX-XXX-XXXX",
+    "contactType": "customer service"
+  }
+}
+</script>
+` + "```" + `
+
+Validate at [Google Rich Results Test](https://search.google.com/test/rich-results)`,
+
+			"nginx": `## Nginx / Static Sites
+
+Add JSON-LD schema markup in your HTML source. See the Apache guide for the JSON-LD format.`,
+
+			"litespeed": `## LiteSpeed
+
+Structured data is added in HTML, not server config. See the Apache guide for JSON-LD format.`,
+
+			"plesk": `## Plesk
+
+Edit your HTML files to add JSON-LD structured data. See the Apache guide for examples.`,
+
+			"cpanel": `## cPanel
+
+Edit your HTML files via **File Manager** to add JSON-LD schema markup.`,
+
+			"wordpress": `## WordPress - Structured Data
+
+**Option 1: SEO Plugin (Recommended)**
+
+**Yoast SEO** and **Rank Math** add structured data automatically:
+1. Install and configure the plugin
+2. Set your organization/person info in **SEO** > **Search Appearance**
+3. The plugin generates JSON-LD for pages, posts, breadcrumbs, and more
+
+**Option 2: Dedicated Schema Plugin**
+
+Install **Schema Pro** or **WP Schema** for advanced schema types:
+- FAQ schema
+- How-to schema
+- Product schema
+- Event schema
+
+**Option 3: Manual**
+
+` + "```php" + `
+add_action('wp_head', function() {
+    if (is_front_page()) {
+        echo '<script type="application/ld+json">
+        {"@context":"https://schema.org","@type":"Organization","name":"' . get_bloginfo('name') . '","url":"' . home_url() . '"}
+        </script>';
+    }
+});
+` + "```",
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 44. Domain Reputation & Age
+	// -------------------------------------------------------------------------
+	RemediationDB["Domain Reputation & Age"] = RemediationGuide{
+		CheckName:    "Domain Reputation & Age",
+		Title:        "Improve Domain Reputation",
+		Description:  "Domain age is fixed, but reputation can be improved through good practices. Poor reputation can affect email deliverability and search rankings.",
+		Priority:     "low",
+		TimeEstimate: "ongoing",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Domain Reputation
+
+Cloudflare can help improve reputation:
+
+1. Enable **Bot Fight Mode** to prevent abuse
+2. Enable **DNSSEC** under **DNS** > **Settings**
+3. Use **Email Routing** to set up proper email authentication
+4. Ensure SPF, DKIM, and DMARC records are configured
+
+> Domain reputation improves over time with consistent good practices.`,
+
+			"apache": `## General - Improve Domain Reputation
+
+**Technical measures:**
+- Ensure SPF, DKIM, and DMARC DNS records are properly configured
+- Enable HTTPS on all pages
+- Set up proper HSTS headers
+- Monitor blacklists: check [MXToolbox](https://mxtoolbox.com/blacklists.aspx)
+- Remove malware or phishing content immediately
+
+**Content measures:**
+- Publish quality, original content regularly
+- Avoid spammy SEO practices
+- Get backlinks from reputable sites
+- Register domain for multiple years (signals legitimacy)`,
+
+			"nginx": `## General - Domain Reputation
+
+Domain reputation is not server-specific. Follow general best practices:
+
+1. Configure email authentication (SPF, DKIM, DMARC)
+2. Keep site malware-free (use security scanning)
+3. Monitor blacklists regularly
+4. Maintain consistent uptime
+5. Use HTTPS everywhere`,
+
+			"litespeed": `## LiteSpeed
+
+Domain reputation is managed through DNS and content practices, not server configuration. See the general guide above.`,
+
+			"plesk": `## Plesk
+
+1. Use **Security** > **SSL/TLS** to enforce HTTPS
+2. Configure email authentication under **Mail** > **Mail Settings**
+3. Enable DKIM signing for outgoing emails
+4. Monitor domain health in **Websites & Domains**`,
+
+			"cpanel": `## cPanel
+
+1. Go to **Email** > **Authentication** to set up SPF and DKIM
+2. Use **Security** > **SSL/TLS** to enforce HTTPS
+3. Monitor email deliverability and blacklists
+4. Keep all software updated to prevent compromise`,
+
+			"wordpress": `## WordPress - Domain Reputation
+
+1. Keep WordPress, themes, and plugins **updated**
+2. Install a security plugin (**Wordfence** or **Sucuri**)
+3. Run regular malware scans
+4. Use **Google Search Console** to monitor for security issues
+5. Ensure proper email authentication (SPF, DKIM, DMARC at DNS level)
+6. Submit sitemap to search engines
+7. Build quality backlinks through good content`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 45. Time to First Byte (TTFB)
+	// -------------------------------------------------------------------------
+	RemediationDB["Time to First Byte (TTFB)"] = RemediationGuide{
+		CheckName:    "Time to First Byte (TTFB)",
+		Title:        "Improve Time to First Byte (TTFB)",
+		Description:  "TTFB measures the time from the request to the first byte of the response. High TTFB indicates server-side performance issues.",
+		Priority:     "medium",
+		TimeEstimate: "30 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Improve TTFB
+
+1. Enable **Caching** > set **Browser Cache TTL** to at least 4 hours
+2. Enable **Tiered Cache** under **Caching** > **Tiered Cache**
+3. Enable **Early Hints** under **Speed** > **Optimization**
+4. Enable **0-RTT Connection Resumption** under **Network**
+5. Create **Page Rules** to cache static HTML pages
+6. Consider **Argo Smart Routing** (paid) for optimal routing`,
+
+			"apache": `## Apache - Improve TTFB
+
+**Enable caching modules:**
+
+` + "```bash" + `
+sudo a2enmod cache cache_disk expires headers
+sudo systemctl restart apache2
+` + "```" + `
+
+**Add caching rules to ` + "`.htaccess`" + `:**
+
+` + "```apache" + `
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 1 hour"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 year"
+</IfModule>
+` + "```" + `
+
+**Other optimizations:**
+- Enable ` + "`mod_php`" + ` opcode caching (OPcache)
+- Use ` + "`KeepAlive On`" + ` with ` + "`MaxKeepAliveRequests 100`" + `
+- Optimize database queries in your application`,
+
+			"nginx": `## Nginx - Improve TTFB
+
+**Enable FastCGI caching:**
+
+` + "```nginx" + `
+fastcgi_cache_path /tmp/nginx_cache levels=1:2 keys_zone=MYAPP:100m inactive=60m;
+
+server {
+    fastcgi_cache MYAPP;
+    fastcgi_cache_valid 200 60m;
+    fastcgi_cache_use_stale error timeout updating;
+    add_header X-Cache-Status $upstream_cache_status;
+}
+` + "```" + `
+
+**Enable connection keepalive:**
+
+` + "```nginx" + `
+keepalive_timeout 65;
+keepalive_requests 100;
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Improve TTFB
+
+1. Enable **LiteSpeed Cache** in Admin Console
+2. Go to **Server** > **Cache** > enable **Page Cache**
+3. Set **Cache TTL** to at least 3600 seconds
+4. Enable **Object Cache** if using Redis/Memcached
+5. LiteSpeed's built-in caching is highly efficient - TTFB improvements are often significant`,
+
+			"plesk": `## Plesk - Improve TTFB
+
+1. Enable **nginx caching**: Domains > your domain > **Apache & nginx Settings** > check **Proxy mode**
+2. Enable **OPcache** for PHP: **PHP Settings** > ensure OPcache is enabled
+3. Increase PHP memory limit if needed
+4. Consider enabling Redis/Memcached for object caching`,
+
+			"cpanel": `## cPanel - Improve TTFB
+
+1. Go to **Software** > **Select PHP Version**
+2. Enable **OPcache** extension
+3. Increase **memory_limit** to at least 256M
+4. Go to **Software** > **Optimize Website** > enable compression
+5. Consider upgrading to LiteSpeed if available from your host`,
+
+			"wordpress": `## WordPress - Improve TTFB
+
+**Caching (most impactful):**
+1. Install **LiteSpeed Cache**, **WP Super Cache**, or **W3 Total Cache**
+2. Enable page caching and object caching
+
+**Database:**
+1. Install **WP-Optimize** to clean up database
+2. Remove unused plugins and themes
+3. Limit post revisions in ` + "`wp-config.php`" + `:
+   ` + "`define('WP_POST_REVISIONS', 5);`" + `
+
+**PHP:**
+1. Use PHP 8.0+ (ask your host to upgrade)
+2. Increase memory: ` + "`define('WP_MEMORY_LIMIT', '256M');`" + ` in ` + "`wp-config.php`" + `
+
+**Hosting:**
+Consider upgrading from shared hosting to VPS or managed WordPress hosting.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 46. Content-Type & X-XSS-Protection Headers
+	// -------------------------------------------------------------------------
+	RemediationDB["Content-Type & X-XSS-Protection Headers"] = RemediationGuide{
+		CheckName:    "Content-Type & X-XSS-Protection Headers",
+		Title:        "Set Content-Type and X-XSS-Protection Headers",
+		Description:  "Proper Content-Type prevents MIME sniffing attacks. X-XSS-Protection enables browser-level XSS filtering.",
+		Priority:     "high",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Content-Type & XSS Headers
+
+1. Go to **Rules** > **Transform Rules** > **Modify Response Header**
+2. Add headers:
+   - ` + "`X-Content-Type-Options: nosniff`" + `
+   - ` + "`X-XSS-Protection: 1; mode=block`" + `
+
+> ` + "`X-Content-Type-Options`" + ` is often more important than ` + "`X-XSS-Protection`" + `. Modern browsers rely on CSP instead of XSS-Protection.`,
+
+			"apache": `## Apache - Content-Type & XSS Headers
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Ensure proper Content-Type for common file types
+AddType text/html .html .htm
+AddType text/css .css
+AddType application/javascript .js
+AddType application/json .json
+` + "```",
+
+			"nginx": `## Nginx - Content-Type & XSS Headers
+
+Add inside your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+` + "```" + `
+
+Ensure MIME types are configured in ` + "`/etc/nginx/mime.types`" + `.
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Content-Type & XSS Headers
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+` + "```",
+
+			"plesk": `## Plesk - Content-Type & XSS Headers
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+` + "```" + `
+
+3. Click **Apply**`,
+
+			"cpanel": `## cPanel - Content-Type & XSS Headers
+
+Edit ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+` + "```",
+
+			"wordpress": `## WordPress - Content-Type & XSS Headers
+
+` + "```php" + `
+add_action('send_headers', function() {
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+});
+` + "```" + `
+
+Or use the **HTTP Headers** plugin for a no-code solution.
+
+> Modern best practice: also add a strong **Content-Security-Policy** header, which provides better XSS protection than X-XSS-Protection.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 47. Environment File Exposure
+	// -------------------------------------------------------------------------
+	RemediationDB["Environment File Exposure"] = RemediationGuide{
+		CheckName:    "Environment File Exposure",
+		Title:        "Block Access to .env Files",
+		Description:  "Exposed .env files leak database credentials, API keys, and other secrets. This is a critical security vulnerability.",
+		Priority:     "critical",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block .env Access
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path contains \"/.env\")`" + `
+   - **Action**: Block
+3. Deploy
+
+Or use a **Transform Rule** to return 403 for .env requests.`,
+
+			"apache": `## Apache - Block .env Access
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+# Block access to .env files
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+**Also remove the file from web root:**
+
+` + "```bash" + `
+# Move .env above document root (recommended)
+mv /var/www/html/.env /var/www/.env
+` + "```" + `
+
+> **Critical**: If .env was publicly accessible, rotate ALL credentials in it immediately.`,
+
+			"nginx": `## Nginx - Block .env Access
+
+Add to your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+# Block access to dotenv files
+location ~ /\.env {
+    deny all;
+    return 404;
+}
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + `
+
+> **Critical**: If exposed, rotate all credentials in the .env file immediately.`,
+
+			"litespeed": `## LiteSpeed - Block .env Access
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+Or use LiteSpeed Admin > **Security** to block the pattern.`,
+
+			"plesk": `## Plesk - Block .env Access
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+
+` + "```apache" + `
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. Click **Apply**
+4. Remove or move the .env file outside the web root`,
+
+			"cpanel": `## cPanel - Block .env Access
+
+1. Open **File Manager** > edit ` + "`" + `.htaccess` + "`" + `
+2. Add:
+
+` + "```apache" + `
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. Move the ` + "`.env`" + ` file above ` + "`public_html`" + ` if possible
+4. **Rotate all credentials** if the file was publicly accessible`,
+
+			"wordpress": `## WordPress - Block .env Access
+
+Add to ` + "`" + `.htaccess` + "`" + ` (before WordPress rules):
+
+` + "```apache" + `
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+**Critical steps:**
+1. Move ` + "`.env`" + ` above the WordPress root directory
+2. If it was exposed, **immediately rotate** all database passwords, API keys, and secrets
+3. Check server logs for unauthorized access to the file`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 48. Git Repository Exposure
+	// -------------------------------------------------------------------------
+	RemediationDB["Git Repository Exposure"] = RemediationGuide{
+		CheckName:    "Git Repository Exposure",
+		Title:        "Block Access to .git Directory",
+		Description:  "An exposed .git directory lets attackers download your entire source code, commit history, and potentially secrets.",
+		Priority:     "critical",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block .git Access
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path contains \"/.git\")`" + `
+   - **Action**: Block
+3. Deploy`,
+
+			"apache": `## Apache - Block .git Access
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+# Block access to .git directory
+RedirectMatch 404 /\.git
+
+# Alternative: deny all
+<DirectoryMatch "^/.*/\.git/">
+    Require all denied
+</DirectoryMatch>
+` + "```" + `
+
+**Better solution**: Remove .git from production:
+
+` + "```bash" + `
+rm -rf /var/www/html/.git
+` + "```" + `
+
+> Deploy using CI/CD instead of ` + "`git pull`" + ` on production servers.`,
+
+			"nginx": `## Nginx - Block .git Access
+
+Add to your ` + "`server`" + ` block:
+
+` + "```nginx" + `
+# Block all dotfile directories
+location ~ /\.git {
+    deny all;
+    return 404;
+}
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + `
+
+**Best practice**: Remove ` + "`.git`" + ` from production entirely and use CI/CD for deployments.`,
+
+			"litespeed": `## LiteSpeed - Block .git Access
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+RedirectMatch 404 /\.git
+` + "```" + `
+
+Or remove ` + "`.git`" + ` from the web root entirely.`,
+
+			"plesk": `## Plesk - Block .git Access
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Add to **Additional Apache directives**:
+   ` + "`RedirectMatch 404 /\\.git`" + `
+3. Click **Apply**
+4. Remove ` + "`.git`" + ` directory from the web root if present`,
+
+			"cpanel": `## cPanel - Block .git Access
+
+1. Edit ` + "`" + `.htaccess` + "`" + ` via **File Manager**:
+
+` + "```apache" + `
+RedirectMatch 404 /\.git
+` + "```" + `
+
+2. Delete the ` + "`.git`" + ` folder from ` + "`public_html`" + ` if it exists
+3. Use deploy scripts or CI/CD instead of ` + "`git clone`" + ` in production`,
+
+			"wordpress": `## WordPress - Block .git Access
+
+Add to ` + "`" + `.htaccess` + "`" + ` (before WordPress rules):
+
+` + "```apache" + `
+RedirectMatch 404 /\.git
+` + "```" + `
+
+**Important:**
+1. Remove ` + "`.git`" + ` from your WordPress directory: ` + "`rm -rf .git`" + `
+2. Never deploy WordPress via ` + "`git clone`" + ` to production
+3. If exposed, review commit history for leaked secrets and rotate them`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 49. PHP Info Exposure
+	// -------------------------------------------------------------------------
+	RemediationDB["PHP Info Exposure"] = RemediationGuide{
+		CheckName:    "PHP Info Exposure",
+		Title:        "Remove or Block phpinfo() Files",
+		Description:  "phpinfo() exposes PHP version, modules, environment variables, and server paths, giving attackers valuable reconnaissance data.",
+		Priority:     "high",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block phpinfo Access
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path contains \"phpinfo\")`" + `
+   - **Action**: Block
+3. Deploy`,
+
+			"apache": `## Apache - Remove phpinfo
+
+**Step 1: Delete the file:**
+
+` + "```bash" + `
+find /var/www -name "phpinfo.php" -delete
+find /var/www -name "info.php" -delete
+` + "```" + `
+
+**Step 2: Block future access via .htaccess:**
+
+` + "```apache" + `
+<FilesMatch "phpinfo\.php|info\.php">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+**Step 3: Disable in PHP config (` + "`php.ini`" + `):**
+
+` + "```ini" + `
+disable_functions = phpinfo
+` + "```",
+
+			"nginx": `## Nginx - Block phpinfo
+
+**Delete the file:**
+
+` + "```bash" + `
+find /var/www -name "phpinfo.php" -delete
+` + "```" + `
+
+**Block via Nginx:**
+
+` + "```nginx" + `
+location ~* phpinfo\.php$ {
+    deny all;
+    return 404;
+}
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Remove phpinfo
+
+1. Delete ` + "`phpinfo.php`" + ` from your document root
+2. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "phpinfo\.php|info\.php">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. Disable in PHP: add ` + "`phpinfo`" + ` to ` + "`disable_functions`" + ` in php.ini`,
+
+			"plesk": `## Plesk - Remove phpinfo
+
+1. Use **File Manager** to find and delete ` + "`phpinfo.php`" + `
+2. Go to **PHP Settings** for your domain
+3. Add ` + "`phpinfo`" + ` to **disable_functions**
+4. Click **Apply**`,
+
+			"cpanel": `## cPanel - Remove phpinfo
+
+1. Open **File Manager** > search for ` + "`phpinfo.php`" + `
+2. Delete all instances found
+3. Go to **Software** > **MultiPHP INI Editor**
+4. Add ` + "`phpinfo`" + ` to ` + "`disable_functions`" + `
+5. Save changes`,
+
+			"wordpress": `## WordPress - Remove phpinfo
+
+1. Search and delete any ` + "`phpinfo.php`" + ` file in your WordPress directory
+2. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "phpinfo\.php|info\.php">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. WordPress does not need phpinfo - it should never exist in production`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 50. Htaccess File Exposure
+	// -------------------------------------------------------------------------
+	RemediationDB["Htaccess File Exposure"] = RemediationGuide{
+		CheckName:    "Htaccess File Exposure",
+		Title:        "Block Access to .htaccess File",
+		Description:  "An exposed .htaccess file reveals server configuration, rewrite rules, and potentially authentication details.",
+		Priority:     "high",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block .htaccess Access
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path contains \".htaccess\")`" + `
+   - **Action**: Block
+3. Deploy`,
+
+			"apache": `## Apache - Block .htaccess Access
+
+Apache should block .htaccess by default. Verify your config includes:
+
+` + "```apache" + `
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+If ` + "`.htaccess`" + ` is accessible, check ` + "`/etc/apache2/apache2.conf`" + ` for:
+
+` + "```apache" + `
+<Directory />
+    AllowOverride None
+    <FilesMatch "^\.ht">
+        Require all denied
+    </FilesMatch>
+</Directory>
+` + "```" + `
+
+Restart: ` + "`sudo systemctl restart apache2`" + ``,
+
+			"nginx": `## Nginx - Block .htaccess Access
+
+Nginx does not use .htaccess, but the file may still be in the document root. Block it:
+
+` + "```nginx" + `
+location ~ /\.ht {
+    deny all;
+    return 404;
+}
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Block .htaccess Access
+
+LiteSpeed should block this by default. Verify by adding to your virtual host config:
+
+` + "```apache" + `
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"plesk": `## Plesk - Block .htaccess Access
+
+1. Go to **Domains** > your domain > **Apache & nginx Settings**
+2. Verify that dotfile access is blocked
+3. Add to **Additional nginx directives**:
+   ` + "`location ~ /\\.ht { deny all; return 404; }`" + `
+4. Click **Apply**`,
+
+			"cpanel": `## cPanel - Block .htaccess Access
+
+Apache on cPanel should block .htaccess access by default. If it is exposed:
+
+1. Contact your hosting provider - this is a server misconfiguration
+2. Verify the main Apache config includes:
+   ` + "`<FilesMatch \"^\\.ht\"> Require all denied </FilesMatch>`" + ``,
+
+			"wordpress": `## WordPress - Block .htaccess Access
+
+WordPress relies on .htaccess but it should never be downloadable. Verify protection:
+
+Add at the **top** of ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+If your host's Apache does not block this by default, contact them to fix the server configuration.`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 51. WordPress Config Backup
+	// -------------------------------------------------------------------------
+	RemediationDB["WordPress Config Backup"] = RemediationGuide{
+		CheckName:    "WordPress Config Backup",
+		Title:        "Remove WordPress Config Backup Files",
+		Description:  "Backup copies of wp-config.php (like wp-config.php.bak) expose database credentials, secret keys, and other sensitive settings.",
+		Priority:     "critical",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block Config Backup Access
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path contains \"wp-config\" and not http.request.uri.path eq \"/wp-config.php\")`" + `
+   - **Action**: Block
+3. Deploy
+
+> This blocks .bak, .old, .save, .swp variants while allowing the real wp-config.php (which PHP processes, not downloads).`,
+
+			"apache": `## Apache - Remove Config Backups
+
+**Step 1: Delete backup files:**
+
+` + "```bash" + `
+rm -f /var/www/html/wp-config.php.bak
+rm -f /var/www/html/wp-config.php.old
+rm -f /var/www/html/wp-config.php.save
+rm -f /var/www/html/wp-config.php~
+rm -f /var/www/html/wp-config.php.swp
+` + "```" + `
+
+**Step 2: Block access via .htaccess:**
+
+` + "```apache" + `
+<FilesMatch "wp-config\.php\.(bak|old|save|swp|txt)|wp-config\.php~">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"nginx": `## Nginx - Block Config Backups
+
+**Delete files:**
+
+` + "```bash" + `
+rm -f /var/www/html/wp-config.php.bak /var/www/html/wp-config.php.old
+` + "```" + `
+
+**Block access:**
+
+` + "```nginx" + `
+location ~* wp-config\.php\.(bak|old|save|swp|txt)$ {
+    deny all;
+    return 404;
+}
+location ~* wp-config\.php~$ {
+    deny all;
+    return 404;
+}
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Remove Config Backups
+
+1. Delete all backup files: ` + "`rm -f wp-config.php.bak wp-config.php.old wp-config.php~`" + `
+2. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "wp-config\.php\.(bak|old|save|swp|txt)|wp-config\.php~">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"plesk": `## Plesk - Remove Config Backups
+
+1. Use **File Manager** to find and delete all ` + "`wp-config.php.*`" + ` backup files
+2. Add to Apache directives:
+
+` + "```apache" + `
+<FilesMatch "wp-config\.php\.(bak|old|save|swp|txt)|wp-config\.php~">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"cpanel": `## cPanel - Remove Config Backups
+
+1. Open **File Manager** > navigate to WordPress root
+2. Delete ` + "`wp-config.php.bak`" + `, ` + "`wp-config.php.old`" + `, and similar files
+3. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "wp-config\.php\.(bak|old|save|swp|txt)|wp-config\.php~">
+    Require all denied
+</FilesMatch>
+` + "```",
+
+			"wordpress": `## WordPress - Remove Config Backups
+
+**Immediate actions:**
+1. Delete all backup files:
+
+` + "```bash" + `
+rm -f wp-config.php.bak wp-config.php.old wp-config.php.save wp-config.php~ wp-config.php.swp
+` + "```" + `
+
+2. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "wp-config\.php\.(bak|old|save|swp|txt)|wp-config\.php~">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. **Rotate all credentials** in wp-config.php if the backup was publicly accessible
+4. Generate new secret keys at [WordPress Salt Generator](https://api.wordpress.org/secret-key/1.1/salt/)`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 52. Backup Directory Exposure
+	// -------------------------------------------------------------------------
+	RemediationDB["Backup Directory Exposure"] = RemediationGuide{
+		CheckName:    "Backup Directory Exposure",
+		Title:        "Block Access to Backup Directories",
+		Description:  "Exposed backup directories can contain database dumps, full site archives, and configuration files with credentials.",
+		Priority:     "critical",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block Backup Access
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path contains \"/backup\") or (http.request.uri.path contains \"/backups\")`" + `
+   - **Action**: Block
+3. Deploy`,
+
+			"apache": `## Apache - Block Backup Access
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+# Block backup directories
+<DirectoryMatch "(backup|backups|bak|old|archive)">
+    Require all denied
+</DirectoryMatch>
+
+# Block backup file extensions
+<FilesMatch "\.(sql|gz|tar|zip|bak|old|dump)$">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+**Best practice**: Move backups outside the web root:
+
+` + "```bash" + `
+mv /var/www/html/backup /var/backups/site-backup
+` + "```",
+
+			"nginx": `## Nginx - Block Backup Access
+
+` + "```nginx" + `
+# Block backup directories
+location ~* /(backup|backups|bak|old|archive)/ {
+    deny all;
+    return 404;
+}
+
+# Block backup file types
+location ~* \.(sql|gz|tar|zip|bak|dump)$ {
+    deny all;
+    return 404;
+}
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Block Backup Access
+
+Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<DirectoryMatch "(backup|backups|bak)">
+    Require all denied
+</DirectoryMatch>
+<FilesMatch "\.(sql|gz|tar|zip|bak|dump)$">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+Move backups outside the document root.`,
+
+			"plesk": `## Plesk - Block Backup Access
+
+1. Use **File Manager** to move or delete backup directories from the web root
+2. Plesk stores its own backups in ` + "`/var/lib/psa/dumps`" + ` (not web-accessible)
+3. Add to Apache directives to block backup access:
+   ` + "`<FilesMatch \"\\.(sql|gz|tar|zip|bak|dump)$\"> Require all denied </FilesMatch>`" + ``,
+
+			"cpanel": `## cPanel - Block Backup Access
+
+1. Move backups out of ` + "`public_html`" + `:
+   - Use **File Manager** to move backup files/folders to ` + "`/home/user/backups/`" + `
+2. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<FilesMatch "\.(sql|gz|tar|zip|bak|dump)$">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. Use cPanel's built-in backup feature instead of storing backups in web root`,
+
+			"wordpress": `## WordPress - Block Backup Access
+
+1. Delete or move backup directories from WordPress root:
+
+` + "```bash" + `
+mv backup/ /var/backups/wordpress-backup/
+` + "```" + `
+
+2. Add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<DirectoryMatch "(backup|backups|bak)">
+    Require all denied
+</DirectoryMatch>
+<FilesMatch "\.(sql|gz|tar|zip|bak|dump)$">
+    Require all denied
+</FilesMatch>
+` + "```" + `
+
+3. Use a backup plugin that stores files outside the web root (e.g., **UpdraftPlus** with remote storage)`,
+		},
+	}
+
+	// -------------------------------------------------------------------------
+	// 53. Server Status Exposure
+	// -------------------------------------------------------------------------
+	RemediationDB["Server Status Exposure"] = RemediationGuide{
+		CheckName:    "Server Status Exposure",
+		Title:        "Disable Server Status/Info Pages",
+		Description:  "Apache's mod_status and mod_info pages expose server configuration, active connections, and performance data to attackers.",
+		Priority:     "high",
+		TimeEstimate: "5 minutes",
+		Guides: map[string]string{
+			"cloudflare": `## Cloudflare - Block Server Status
+
+1. Go to **Security** > **WAF** > **Custom Rules**
+2. Create a rule:
+   - **Expression**: ` + "`(http.request.uri.path eq \"/server-status\") or (http.request.uri.path eq \"/server-info\")`" + `
+   - **Action**: Block
+3. Deploy
+
+> Also disable on the origin server to prevent direct-IP access.`,
+
+			"apache": `## Apache - Disable Server Status
+
+**Option 1: Disable the module:**
+
+` + "```bash" + `
+sudo a2dismod status
+sudo systemctl restart apache2
+` + "```" + `
+
+**Option 2: Restrict access (if you need it locally):**
+
+` + "```apache" + `
+<Location "/server-status">
+    SetHandler server-status
+    Require ip 127.0.0.1
+    Require ip ::1
+</Location>
+<Location "/server-info">
+    SetHandler server-info
+    Require ip 127.0.0.1
+</Location>
+` + "```" + `
+
+**Option 3: Block via .htaccess:**
+
+` + "```apache" + `
+<Location "/server-status">
+    Require all denied
+</Location>
+` + "```",
+
+			"nginx": `## Nginx - Disable Status Page
+
+If ` + "`stub_status`" + ` is enabled publicly, restrict it:
+
+` + "```nginx" + `
+location /nginx_status {
+    stub_status;
+    allow 127.0.0.1;
+    deny all;
+}
+
+# Block Apache-style status URLs
+location = /server-status { return 404; }
+location = /server-info { return 404; }
+` + "```" + `
+
+Reload: ` + "`sudo nginx -t && sudo systemctl reload nginx`" + ``,
+
+			"litespeed": `## LiteSpeed - Disable Server Status
+
+1. Go to **LiteSpeed Admin** > **Server** > **General**
+2. Set **Server Status** to **Disabled** (or restrict to localhost)
+3. Or add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<Location "/server-status">
+    Require all denied
+</Location>
+` + "```",
+
+			"plesk": `## Plesk - Disable Server Status
+
+1. Go to **Tools & Settings** > **Apache Web Server**
+2. Ensure ` + "`mod_status`" + ` is not enabled for public access
+3. Add to **Additional Apache directives** at server level:
+
+` + "```apache" + `
+<Location "/server-status">
+    Require ip 127.0.0.1
+</Location>
+` + "```",
+
+			"cpanel": `## cPanel - Disable Server Status
+
+1. Access **WHM** > **Service Configuration** > **Apache Configuration**
+2. Go to **Global Configuration**
+3. Ensure ` + "`mod_status`" + ` is restricted
+4. Or add to ` + "`" + `.htaccess` + "`" + `:
+
+` + "```apache" + `
+<Location "/server-status">
+    Require all denied
+</Location>
+` + "```",
+
+			"wordpress": `## WordPress - Block Server Status
+
+Add to ` + "`" + `.htaccess` + "`" + ` (before WordPress rules):
+
+` + "```apache" + `
+<Location "/server-status">
+    Require all denied
+</Location>
+<Location "/server-info">
+    Require all denied
+</Location>
+` + "```" + `
+
+This is a server-level issue. If you are on shared hosting, contact your host to restrict ` + "`mod_status`" + ` access.`,
+		},
+	}
 }
