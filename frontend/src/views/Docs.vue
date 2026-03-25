@@ -18,6 +18,187 @@ const tabs = [
   { id: 'faq', icon: '\u{2753}' },
 ]
 
+const gettingStartedSteps = [
+  {
+    num: 1,
+    title: { en: 'Add Your Website', ar: '\u0623\u0636\u0641 \u0645\u0648\u0642\u0639\u0643' },
+    desc: { en: 'Navigate to the Targets page and click "Add Target". Enter your website URL (e.g., https://example.edu.iq). You can add up to 5 websites on the free plan.', ar: '\u0627\u0646\u062A\u0642\u0644 \u0625\u0644\u0649 \u0635\u0641\u062D\u0629 \u0627\u0644\u0645\u0648\u0627\u0642\u0639 \u0648\u0627\u0636\u063A\u0637 "\u0625\u0636\u0627\u0641\u0629 \u0645\u0648\u0642\u0639". \u0623\u062F\u062E\u0644 \u0631\u0627\u0628\u0637 \u0645\u0648\u0642\u0639\u0643. \u064A\u0645\u0643\u0646\u0643 \u0625\u0636\u0627\u0641\u0629 \u062D\u062A\u0649 5 \u0645\u0648\u0627\u0642\u0639 \u0641\u064A \u0627\u0644\u062E\u0637\u0629 \u0627\u0644\u0645\u062C\u0627\u0646\u064A\u0629.' },
+    icon: '\u{1F310}'
+  },
+  {
+    num: 2,
+    title: { en: 'Verify Domain Ownership', ar: '\u0623\u062B\u0628\u062A \u0645\u0644\u0643\u064A\u0629 \u0627\u0644\u0646\u0637\u0627\u0642' },
+    desc: { en: 'Add a TXT record to your DNS settings with the verification code shown. This proves you own the domain. Wait for DNS propagation (up to 24h), then click "Check Verification".', ar: '\u0623\u0636\u0641 \u0633\u062C\u0644 TXT \u0625\u0644\u0649 \u0625\u0639\u062F\u0627\u062F\u0627\u062A DNS \u0628\u0631\u0645\u0632 \u0627\u0644\u062A\u062D\u0642\u0642. \u0627\u0646\u062A\u0638\u0631 \u0627\u0646\u062A\u0634\u0627\u0631 DNS (\u062D\u062A\u0649 24 \u0633\u0627\u0639\u0629)\u060C \u062B\u0645 \u0627\u0636\u063A\u0637 "\u062A\u062D\u0642\u0642 \u0627\u0644\u0622\u0646".' },
+    icon: '\u2705'
+  },
+  {
+    num: 3,
+    title: { en: 'Run Your First Scan', ar: '\u0634\u063A\u0651\u0644 \u0623\u0648\u0644 \u0641\u062D\u0635' },
+    desc: { en: 'Go to Scans page, click "Start New Scan", select your targets and scan policy. Light (8 categories, 30s), Standard (16, 60s), or Deep (25, 120s).', ar: '\u0627\u0630\u0647\u0628 \u0625\u0644\u0649 \u0635\u0641\u062D\u0629 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A\u060C \u0627\u0636\u063A\u0637 "\u0628\u062F\u0621 \u0641\u062D\u0635 \u062C\u062F\u064A\u062F"\u060C \u0627\u062E\u062A\u0631 \u0627\u0644\u0645\u0648\u0627\u0642\u0639 \u0648\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u0641\u062D\u0635.' },
+    icon: '\u{1F50D}'
+  },
+  {
+    num: 4,
+    title: { en: 'View Results & Download Report', ar: '\u0627\u0639\u0631\u0636 \u0627\u0644\u0646\u062A\u0627\u0626\u062C \u0648\u062D\u0645\u0651\u0644 \u0627\u0644\u062A\u0642\u0631\u064A\u0631' },
+    desc: { en: 'Once the scan completes, view detailed results. Download PDF reports, run AI analysis for fix recommendations, and track your score over time.', ar: '\u0628\u0639\u062F \u0627\u0643\u062A\u0645\u0627\u0644 \u0627\u0644\u0641\u062D\u0635\u060C \u0627\u0639\u0631\u0636 \u0627\u0644\u0646\u062A\u0627\u0626\u062C. \u062D\u0645\u0651\u0644 \u062A\u0642\u0627\u0631\u064A\u0631 PDF\u060C \u0634\u063A\u0651\u0644 \u062A\u062D\u0644\u064A\u0644 AI\u060C \u0648\u062A\u0627\u0628\u0639 \u062F\u0631\u062C\u062A\u0643 \u0639\u0628\u0631 \u0627\u0644\u0632\u0645\u0646.' },
+    icon: '\u{1F4CA}'
+  },
+]
+
+const confidenceLevels = [
+  { pct: '100%', label: { en: 'Deterministic', ar: '\u062D\u062A\u0645\u064A' } },
+  { pct: '85-95%', label: { en: 'High Confidence', ar: '\u062B\u0642\u0629 \u0639\u0627\u0644\u064A\u0629' } },
+  { pct: '70-80%', label: { en: 'Medium Confidence', ar: '\u062B\u0642\u0629 \u0645\u062A\u0648\u0633\u0637\u0629' } },
+  { pct: '60%', label: { en: 'Lower Confidence', ar: '\u062B\u0642\u0629 \u0623\u0642\u0644' } },
+]
+
+const scanPoliciesData = [
+  { name: { en: 'Light', ar: '\u062E\u0641\u064A\u0641' }, cats: 8, timeout: '30s', desc: { en: 'Quick security check: ssl, headers, cookies, mixed_content, performance, dns, seo, content', ar: '\u0641\u062D\u0635 \u0633\u0631\u064A\u0639: ssl\u060C headers\u060C cookies\u060C mixed_content\u060C performance\u060C dns\u060C seo\u060C content' } },
+  { name: { en: 'Standard', ar: '\u0642\u064A\u0627\u0633\u064A' }, cats: 16, timeout: '60s', desc: { en: 'Comprehensive audit: adds server_info, directory, ddos, cors, http_methods, info_disclosure, hosting, secrets', ar: '\u0641\u062D\u0635 \u0634\u0627\u0645\u0644: \u064A\u0636\u064A\u0641 server_info\u060C directory\u060C ddos\u060C cors\u060C http_methods\u060C info_disclosure\u060C hosting\u060C secrets' } },
+  { name: { en: 'Deep', ar: '\u0639\u0645\u064A\u0642' }, cats: 25, timeout: '120s', desc: { en: 'Full assessment: all 25 scanners including malware, xss, wordpress, subdomains, and more', ar: '\u062A\u0642\u064A\u064A\u0645 \u0643\u0627\u0645\u0644: \u062C\u0645\u064A\u0639 \u0627\u0644\u0640 25 \u0641\u0627\u062D\u0635 \u0628\u0645\u0627 \u0641\u064A\u0647\u0627 malware\u060C xss\u060C wordpress\u060C subdomains\u060C \u0648\u0627\u0644\u0645\u0632\u064A\u062F' } },
+]
+
+const reportsData = [
+  {
+    icon: '\u{1F4D1}', title: { en: 'PDF Report', ar: '\u062A\u0642\u0631\u064A\u0631 PDF' },
+    desc: {
+      en: 'Comprehensive PDF report including: overall score with grade, category-by-category breakdown, individual check details with pass/fail status, OWASP Top 10 compliance mapping, remediation recommendations, score history chart, and executive summary.',
+      ar: '\u062A\u0642\u0631\u064A\u0631 PDF \u0634\u0627\u0645\u0644 \u064A\u062A\u0636\u0645\u0646: \u0627\u0644\u062F\u0631\u062C\u0629 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A\u0629 \u0645\u0639 \u0627\u0644\u062A\u0642\u062F\u064A\u0631\u060C \u062A\u0641\u0635\u064A\u0644 \u0643\u0644 \u0641\u0626\u0629\u060C \u062A\u0641\u0627\u0635\u064A\u0644 \u0643\u0644 \u0641\u062D\u0635 \u0645\u0639 \u062D\u0627\u0644\u0629 \u0627\u0644\u0646\u062C\u0627\u062D/\u0627\u0644\u0641\u0634\u0644\u060C \u062E\u0631\u064A\u0637\u0629 \u0627\u0644\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 OWASP Top 10\u060C \u062A\u0648\u0635\u064A\u0627\u062A \u0627\u0644\u0625\u0635\u0644\u0627\u062D\u060C \u0631\u0633\u0645 \u062A\u0627\u0631\u064A\u062E \u0627\u0644\u062F\u0631\u062C\u0627\u062A\u060C \u0648\u0645\u0644\u062E\u0635 \u062A\u0646\u0641\u064A\u0630\u064A.'
+    },
+    how: { en: 'Click "Download PDF" on any scan result page.', ar: '\u0627\u0636\u063A\u0637 "\u062A\u062D\u0645\u064A\u0644 PDF" \u0641\u064A \u0623\u064A \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C \u0641\u062D\u0635.' }
+  },
+  {
+    icon: '\u{1F4CA}', title: { en: 'CSV Export', ar: '\u062A\u0635\u062F\u064A\u0631 CSV' },
+    desc: {
+      en: 'Export scan data as CSV for spreadsheet analysis in Excel, Google Sheets, or other tools. Includes all check names, scores, statuses, and OWASP/CWE mappings.',
+      ar: '\u062A\u0635\u062F\u064A\u0631 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0641\u062D\u0635 \u0643 CSV \u0644\u062A\u062D\u0644\u064A\u0644 \u0627\u0644\u062C\u062F\u0627\u0648\u0644 \u0641\u064A Excel \u0623\u0648 Google Sheets. \u064A\u062A\u0636\u0645\u0646 \u062C\u0645\u064A\u0639 \u0623\u0633\u0645\u0627\u0621 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0648\u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0648\u0627\u0644\u062D\u0627\u0644\u0627\u062A \u0648\u062A\u0639\u064A\u064A\u0646\u0627\u062A OWASP/CWE.'
+    },
+    how: { en: 'Available in the scan results export menu.', ar: '\u0645\u062A\u0627\u062D \u0641\u064A \u0642\u0627\u0626\u0645\u0629 \u062A\u0635\u062F\u064A\u0631 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635.' }
+  },
+  {
+    icon: '\u{1F4BB}', title: { en: 'SARIF Export', ar: '\u062A\u0635\u062F\u064A\u0631 SARIF' },
+    desc: {
+      en: 'Static Analysis Results Interchange Format (SARIF) for integration with GitHub Code Scanning, VS Code SARIF Viewer, and other SAST tools.',
+      ar: '\u0635\u064A\u063A\u0629 SARIF \u0644\u0644\u062A\u0643\u0627\u0645\u0644 \u0645\u0639 GitHub Code Scanning \u0648VS Code SARIF Viewer \u0648\u0623\u062F\u0648\u0627\u062A SAST \u0627\u0644\u0623\u062E\u0631\u0649.'
+    },
+    how: { en: 'Export from the scan results page or via API.', ar: '\u0627\u0644\u062A\u0635\u062F\u064A\u0631 \u0645\u0646 \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635 \u0623\u0648 \u0639\u0628\u0631 API.' }
+  },
+  {
+    icon: '\u{1F916}', title: { en: 'AI Analysis', ar: '\u062A\u062D\u0644\u064A\u0644 AI' },
+    desc: {
+      en: 'AI-powered analysis using your configured LLM provider (DeepSeek, OpenAI, Anthropic, etc.). Provides: executive summary, detailed fix instructions, step-by-step roadmap to improve, and code examples for server configuration.',
+      ar: '\u062A\u062D\u0644\u064A\u0644 \u0645\u062F\u0639\u0648\u0645 \u0628\u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0628\u0627\u0633\u062A\u062E\u062F\u0627\u0645 \u0645\u0632\u0648\u062F LLM \u0627\u0644\u0645\u0647\u064A\u0623. \u064A\u0642\u062F\u0645: \u0645\u0644\u062E\u0635 \u062A\u0646\u0641\u064A\u0630\u064A\u060C \u062A\u0639\u0644\u064A\u0645\u0627\u062A \u0625\u0635\u0644\u0627\u062D \u0645\u0641\u0635\u0644\u0629\u060C \u062E\u0627\u0631\u0637\u0629 \u0637\u0631\u064A\u0642 \u0644\u0644\u062A\u062D\u0633\u064A\u0646\u060C \u0648\u0623\u0645\u062B\u0644\u0629 \u0623\u0643\u0648\u0627\u062F \u0644\u0625\u0639\u062F\u0627\u062F \u0627\u0644\u062E\u0627\u062F\u0645.'
+    },
+    how: { en: 'Click "AI Analysis" on any result page. Requires AI provider configuration in Settings.', ar: '\u0627\u0636\u063A\u0637 "\u062A\u062D\u0644\u064A\u0644 AI" \u0641\u064A \u0623\u064A \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C. \u064A\u062A\u0637\u0644\u0628 \u062A\u0647\u064A\u0626\u0629 \u0645\u0632\u0648\u062F AI \u0641\u064A \u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A.' }
+  },
+  {
+    icon: '\u{1F6E1}\uFE0F', title: { en: 'OWASP Compliance Report', ar: '\u062A\u0642\u0631\u064A\u0631 \u0627\u0644\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 OWASP' },
+    desc: {
+      en: 'Maps all scan findings to the OWASP Top 10 2021 categories (A01-A10). Shows compliance percentage per category and which checks passed or failed for each OWASP risk.',
+      ar: '\u064A\u0631\u0628\u0637 \u062C\u0645\u064A\u0639 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635 \u0628\u0641\u0626\u0627\u062A OWASP Top 10 2021 (A01-A10). \u064A\u0639\u0631\u0636 \u0646\u0633\u0628\u0629 \u0627\u0644\u062A\u0648\u0627\u0641\u0642 \u0644\u0643\u0644 \u0641\u0626\u0629 \u0648\u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0627\u0644\u0646\u0627\u062C\u062D\u0629 \u0648\u0627\u0644\u0641\u0627\u0634\u0644\u0629 \u0644\u0643\u0644 \u062E\u0637\u0631.'
+    },
+    how: { en: 'Available in the scan result detail page under the Compliance tab.', ar: '\u0645\u062A\u0627\u062D \u0641\u064A \u0635\u0641\u062D\u0629 \u062A\u0641\u0627\u0635\u064A\u0644 \u0646\u062A\u064A\u062C\u0629 \u0627\u0644\u0641\u062D\u0635 \u062A\u062D\u062A \u062A\u0628\u0648\u064A\u0628 \u0627\u0644\u062A\u0648\u0627\u0641\u0642.' }
+  },
+]
+
+const rateLimitsData = [
+  { plan: { en: 'Free', ar: '\u0645\u062C\u0627\u0646\u064A' }, limit: '60 req/min' },
+  { plan: { en: 'Basic', ar: '\u0623\u0633\u0627\u0633\u064A' }, limit: '120 req/min' },
+  { plan: { en: 'Pro', ar: '\u0627\u062D\u062A\u0631\u0627\u0641\u064A' }, limit: '300 req/min' },
+  { plan: { en: 'Enterprise', ar: '\u0645\u0624\u0633\u0633\u0627\u062A' }, limit: '1000 req/min' },
+]
+
+const integrationsData = [
+  {
+    icon: '\u{1F514}', title: { en: 'Webhooks', ar: '\u0627\u0644\u0648\u064A\u0628\u0647\u0648\u0643' },
+    desc: {
+      en: 'Send scan results to Slack, Telegram, Discord, or any custom URL. Configure webhook endpoints in the Webhooks page. Supports JSON payloads with scan summary, scores, and detailed findings.',
+      ar: '\u0623\u0631\u0633\u0644 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635 \u0625\u0644\u0649 Slack\u060C Telegram\u060C Discord\u060C \u0623\u0648 \u0623\u064A URL \u0645\u062E\u0635\u0635. \u0647\u064A\u0651\u0626 \u0646\u0642\u0627\u0637 \u0627\u0644\u0648\u064A\u0628\u0647\u0648\u0643 \u0641\u064A \u0635\u0641\u062D\u0629 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A. \u064A\u062F\u0639\u0645 \u062D\u0645\u0648\u0644\u0627\u062A JSON \u0645\u0639 \u0645\u0644\u062E\u0635 \u0627\u0644\u0641\u062D\u0635 \u0648\u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0648\u0627\u0644\u0646\u062A\u0627\u0626\u062C \u0627\u0644\u062A\u0641\u0635\u064A\u0644\u064A\u0629.'
+    }
+  },
+  {
+    icon: '\u{1F4E7}', title: { en: 'Email Alerts', ar: '\u062A\u0646\u0628\u064A\u0647\u0627\u062A \u0627\u0644\u0628\u0631\u064A\u062F' },
+    desc: {
+      en: 'Receive email notifications when scans complete. Configure SMTP settings for custom email delivery. Alert types: scan completion, score drop below threshold, scheduled scan failures.',
+      ar: '\u0627\u0633\u062A\u0644\u0645 \u0625\u0634\u0639\u0627\u0631\u0627\u062A \u0628\u0631\u064A\u062F \u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A \u0639\u0646\u062F \u0627\u0643\u062A\u0645\u0627\u0644 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A. \u0647\u064A\u0651\u0626 \u0625\u0639\u062F\u0627\u062F\u0627\u062A SMTP \u0644\u062A\u0633\u0644\u064A\u0645 \u0628\u0631\u064A\u062F \u0645\u062E\u0635\u0635. \u0623\u0646\u0648\u0627\u0639 \u0627\u0644\u062A\u0646\u0628\u064A\u0647\u0627\u062A: \u0627\u0643\u062A\u0645\u0627\u0644 \u0627\u0644\u0641\u062D\u0635\u060C \u0627\u0646\u062E\u0641\u0627\u0636 \u0627\u0644\u062F\u0631\u062C\u0629\u060C \u0641\u0634\u0644 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0627\u0644\u0645\u062C\u062F\u0648\u0644\u0629.'
+    }
+  },
+  {
+    icon: '\u{1F4BB}', title: { en: 'GitHub Actions', ar: 'GitHub Actions' },
+    desc: {
+      en: 'Integrate VScan into your CI/CD pipeline. Run scans on every deployment and fail the build if security score drops below threshold.',
+      ar: '\u0627\u062F\u0645\u062C VScan \u0641\u064A \u062E\u0637 CI/CD \u0627\u0644\u062E\u0627\u0635 \u0628\u0643. \u0634\u063A\u0651\u0644 \u0641\u062D\u0648\u0635\u0627\u062A \u0645\u0639 \u0643\u0644 \u0646\u0634\u0631 \u0648\u0623\u0641\u0634\u0644 \u0627\u0644\u0628\u0646\u0627\u0621 \u0625\u0630\u0627 \u0627\u0646\u062E\u0641\u0636\u062A \u0627\u0644\u062F\u0631\u062C\u0629 \u0639\u0646 \u0627\u0644\u062D\u062F.'
+    }
+  },
+  {
+    icon: '\u{1F3AB}', title: { en: 'Jira Integration', ar: '\u062A\u0643\u0627\u0645\u0644 Jira' },
+    desc: {
+      en: 'Automatically create Jira tickets for failed security checks. Each ticket includes check details, OWASP mapping, remediation steps, and severity level.',
+      ar: '\u0623\u0646\u0634\u0626 \u062A\u0630\u0627\u0643\u0631 Jira \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0644\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0627\u0644\u0641\u0627\u0634\u0644\u0629. \u062A\u062A\u0636\u0645\u0646 \u0643\u0644 \u062A\u0630\u0643\u0631\u0629 \u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u0641\u062D\u0635 \u0648\u062A\u0639\u064A\u064A\u0646 OWASP \u0648\u062E\u0637\u0648\u0627\u062A \u0627\u0644\u0625\u0635\u0644\u0627\u062D \u0648\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u062E\u0637\u0648\u0631\u0629.'
+    }
+  },
+  {
+    icon: '\u{1F41B}', title: { en: 'GitHub Issues', ar: 'GitHub Issues' },
+    desc: {
+      en: 'Auto-create GitHub Issues for security findings. Issues are labeled with severity and OWASP category. Close issues automatically when the check passes on the next scan.',
+      ar: '\u0623\u0646\u0634\u0626 GitHub Issues \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0644\u0644\u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0623\u0645\u0646\u064A\u0629. \u062A\u064F\u0648\u0633\u0645 \u0627\u0644\u0645\u0634\u0643\u0644\u0627\u062A \u0628\u0627\u0644\u062E\u0637\u0648\u0631\u0629 \u0648\u0641\u0626\u0629 OWASP. \u0623\u063A\u0644\u0642 \u0627\u0644\u0645\u0634\u0643\u0644\u0627\u062A \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0639\u0646\u062F \u0646\u062C\u0627\u062D \u0627\u0644\u0641\u062D\u0635 \u0641\u064A \u0627\u0644\u0645\u0631\u0629 \u0627\u0644\u062A\u0627\u0644\u064A\u0629.'
+    }
+  },
+  {
+    icon: '\u{2328}\uFE0F', title: { en: 'CLI Tool', ar: '\u0623\u062F\u0627\u0629 \u0633\u0637\u0631 \u0627\u0644\u0623\u0648\u0627\u0645\u0631' },
+    desc: {
+      en: 'Command-line tool for running scans and retrieving results. Install and use with your API key for automation scripts and CI/CD pipelines.',
+      ar: '\u0623\u062F\u0627\u0629 \u0633\u0637\u0631 \u0623\u0648\u0627\u0645\u0631 \u0644\u062A\u0634\u063A\u064A\u0644 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0648\u0627\u0633\u062A\u0631\u062C\u0627\u0639 \u0627\u0644\u0646\u062A\u0627\u0626\u062C. \u062B\u0628\u0651\u062A \u0648\u0627\u0633\u062A\u062E\u062F\u0645 \u0645\u0639 \u0645\u0641\u062A\u0627\u062D API \u0644\u0633\u0643\u0631\u0628\u062A\u0627\u062A \u0627\u0644\u0623\u062A\u0645\u062A\u0629 \u0648\u062E\u0637\u0648\u0637 CI/CD.'
+    }
+  },
+  {
+    icon: '\u{1F433}', title: { en: 'Docker', ar: 'Docker' },
+    desc: {
+      en: 'Run VScan in a Docker container for self-hosted deployments. One-liner command to start scanning your infrastructure.',
+      ar: '\u0634\u063A\u0651\u0644 VScan \u0641\u064A \u062D\u0627\u0648\u064A\u0629 Docker \u0644\u0644\u0646\u0634\u0631 \u0627\u0644\u0630\u0627\u062A\u064A. \u0623\u0645\u0631 \u0648\u0627\u062D\u062F \u0644\u0628\u062F\u0621 \u0641\u062D\u0635 \u0628\u0646\u064A\u062A\u0643 \u0627\u0644\u062A\u062D\u062A\u064A\u0629.'
+    }
+  },
+]
+
+const curlSnippet = 'curl -X POST https://your-vscan-domain/api/scans \\\n  -H "Authorization: Bearer YOUR_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"target_ids": [1, 2], "policy": "standard"}\''
+
+const pythonSnippet = `import requests
+
+resp = requests.post(
+    "https://your-vscan-domain/api/scans",
+    headers={"X-API-Key": "YOUR_API_KEY"},
+    json={"target_ids": [1, 2], "policy": "standard"}
+)
+print(resp.json())`
+
+const jsSnippet = `const resp = await fetch("https://your-vscan-domain/api/scans", {
+  method: "POST",
+  headers: {
+    "X-API-Key": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ target_ids: [1, 2], policy: "standard" }),
+});
+const data = await resp.json();
+console.log(data);`
+
+const ghActionsSnippet = `name: VScan Security Check
+on:
+  push:
+    branches: [main]
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger VScan
+        run: |
+          curl -X POST https://your-vscan-domain/api/scans \\
+            -H "X-API-Key: \${{ secrets.VSCAN_API_KEY }}" \\
+            -H "Content-Type: application/json" \\
+            -d '{ "target_ids": [1], "policy": "standard" }'`
+
+const dockerSnippet = 'docker run -d --name vscan -p 8080:8080 \\\n  -e DATABASE_URL=postgres://user:pass@host/vscan \\\n  -e JWT_SECRET=your-secret \\\n  vscan-mohesr:latest'
+
 const tabNames = {
   'getting-started': { en: 'Getting Started', ar: '\u0627\u0644\u0628\u062F\u0621 \u0627\u0644\u0633\u0631\u064A\u0639' },
   'scanners': { en: 'Scanners', ar: '\u0627\u0644\u0641\u0627\u062D\u0635\u0627\u062A' },
@@ -674,32 +855,7 @@ function printPage() {
           </div>
 
           <!-- Steps -->
-          <div v-for="(step, i) in [
-            {
-              num: 1,
-              title: { en: 'Add Your Website', ar: '\u0623\u0636\u0641 \u0645\u0648\u0642\u0639\u0643' },
-              desc: { en: 'Navigate to the Targets page and click \"Add Target\". Enter your website URL (e.g., https://example.edu.iq). You can add up to 5 websites on the free plan.', ar: '\u0627\u0646\u062A\u0642\u0644 \u0625\u0644\u0649 \u0635\u0641\u062D\u0629 \u0627\u0644\u0645\u0648\u0627\u0642\u0639 \u0648\u0627\u0636\u063A\u0637 \"\u0625\u0636\u0627\u0641\u0629 \u0645\u0648\u0642\u0639\". \u0623\u062F\u062E\u0644 \u0631\u0627\u0628\u0637 \u0645\u0648\u0642\u0639\u0643 (\u0645\u062B\u0644 https://example.edu.iq). \u064A\u0645\u0643\u0646\u0643 \u0625\u0636\u0627\u0641\u0629 \u062D\u062A\u0649 5 \u0645\u0648\u0627\u0642\u0639 \u0641\u064A \u0627\u0644\u062E\u0637\u0629 \u0627\u0644\u0645\u062C\u0627\u0646\u064A\u0629.' },
-              icon: '\u{1F310}'
-            },
-            {
-              num: 2,
-              title: { en: 'Verify Domain Ownership', ar: '\u0623\u062B\u0628\u062A \u0645\u0644\u0643\u064A\u0629 \u0627\u0644\u0646\u0637\u0627\u0642' },
-              desc: { en: 'Add a TXT record to your DNS settings with the verification code shown. This proves you own the domain. Log into your DNS provider, add a new TXT record with the provided value, wait for DNS propagation (up to 24h), then click \"Check Verification\".', ar: '\u0623\u0636\u0641 \u0633\u062C\u0644 TXT \u0625\u0644\u0649 \u0625\u0639\u062F\u0627\u062F\u0627\u062A DNS \u0628\u0631\u0645\u0632 \u0627\u0644\u062A\u062D\u0642\u0642 \u0627\u0644\u0645\u0639\u0631\u0648\u0636. \u0647\u0630\u0627 \u064A\u062B\u0628\u062A \u0645\u0644\u0643\u064A\u062A\u0643 \u0644\u0644\u0646\u0637\u0627\u0642. \u0633\u062C\u0651\u0644 \u0627\u0644\u062F\u062E\u0648\u0644 \u0625\u0644\u0649 \u0645\u0632\u0648\u062F DNS\u060C \u0623\u0636\u0641 \u0633\u062C\u0644 TXT \u062C\u062F\u064A\u062F\u060C \u0627\u0646\u062A\u0638\u0631 \u0627\u0646\u062A\u0634\u0627\u0631 DNS (\u062D\u062A\u0649 24 \u0633\u0627\u0639\u0629)\u060C \u062B\u0645 \u0627\u0636\u063A\u0637 \"\u062A\u062D\u0642\u0642 \u0627\u0644\u0622\u0646\".' },
-              icon: '\u2705'
-            },
-            {
-              num: 3,
-              title: { en: 'Run Your First Scan', ar: '\u0634\u063A\u0651\u0644 \u0623\u0648\u0644 \u0641\u062D\u0635' },
-              desc: { en: 'Go to Scans page, click \"Start New Scan\", select your targets and scan policy. Light scan (8 categories, 30s) for a quick overview. Standard scan (16 categories, 60s) for comprehensive audit. Deep scan (25 categories, 120s) for full assessment.', ar: '\u0627\u0630\u0647\u0628 \u0625\u0644\u0649 \u0635\u0641\u062D\u0629 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A\u060C \u0627\u0636\u063A\u0637 \"\u0628\u062F\u0621 \u0641\u062D\u0635 \u062C\u062F\u064A\u062F\"\u060C \u0627\u062E\u062A\u0631 \u0627\u0644\u0645\u0648\u0627\u0642\u0639 \u0648\u0633\u064A\u0627\u0633\u0629 \u0627\u0644\u0641\u062D\u0635. \u0641\u062D\u0635 \u062E\u0641\u064A\u0641 (8 \u0641\u0626\u0627\u062A\u060C 30\u062B) \u0644\u0646\u0638\u0631\u0629 \u0633\u0631\u064A\u0639\u0629. \u0641\u062D\u0635 \u0642\u064A\u0627\u0633\u064A (16 \u0641\u0626\u0629\u060C 60\u062B) \u0644\u0641\u062D\u0635 \u0634\u0627\u0645\u0644. \u0641\u062D\u0635 \u0639\u0645\u064A\u0642 (25 \u0641\u0626\u0629\u060C 120\u062B) \u0644\u062A\u0642\u064A\u064A\u0645 \u0643\u0627\u0645\u0644.' },
-              icon: '\u{1F50D}'
-            },
-            {
-              num: 4,
-              title: { en: 'View Results & Download Report', ar: '\u0627\u0639\u0631\u0636 \u0627\u0644\u0646\u062A\u0627\u0626\u062C \u0648\u062D\u0645\u0651\u0644 \u0627\u0644\u062A\u0642\u0631\u064A\u0631' },
-              desc: { en: 'Once the scan completes, view detailed results for each website. Download PDF reports, run AI analysis for fix recommendations, and track your score over time.', ar: '\u0628\u0639\u062F \u0627\u0643\u062A\u0645\u0627\u0644 \u0627\u0644\u0641\u062D\u0635\u060C \u0627\u0639\u0631\u0636 \u0627\u0644\u0646\u062A\u0627\u0626\u062C \u0627\u0644\u062A\u0641\u0635\u064A\u0644\u064A\u0629 \u0644\u0643\u0644 \u0645\u0648\u0642\u0639. \u062D\u0645\u0651\u0644 \u062A\u0642\u0627\u0631\u064A\u0631 PDF\u060C \u0634\u063A\u0651\u0644 \u062A\u062D\u0644\u064A\u0644 AI \u0644\u062A\u0648\u0635\u064A\u0627\u062A \u0627\u0644\u0625\u0635\u0644\u0627\u062D\u060C \u0648\u062A\u0627\u0628\u0639 \u062F\u0631\u062C\u062A\u0643 \u0639\u0628\u0631 \u0627\u0644\u0632\u0645\u0646.' },
-              icon: '\u{1F4CA}'
-            },
-          ]" :key="i" class="bg-white dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600 p-6">
+          <div v-for="(step, i) in gettingStartedSteps" :key="i" class="bg-white dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600 p-6">
             <div class="flex items-start gap-4">
               <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-2xl">
                 {{ step.icon }}
@@ -842,12 +998,7 @@ function printPage() {
               {{ lang === 'ar' ? '\u062F\u0631\u062C\u0629 \u0627\u0644\u062B\u0642\u0629' : 'Confidence Score' }}
             </h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div v-for="c in [
-                { pct: '100%', label: { en: 'Deterministic', ar: '\u062D\u062A\u0645\u064A' } },
-                { pct: '85-95%', label: { en: 'High Confidence', ar: '\u062B\u0642\u0629 \u0639\u0627\u0644\u064A\u0629' } },
-                { pct: '70-80%', label: { en: 'Medium Confidence', ar: '\u062B\u0642\u0629 \u0645\u062A\u0648\u0633\u0637\u0629' } },
-                { pct: '60%', label: { en: 'Lower Confidence', ar: '\u062B\u0642\u0629 \u0623\u0642\u0644' } },
-              ]" :key="c.pct" class="text-center p-3 bg-gray-50 dark:bg-slate-600 rounded-lg">
+              <div v-for="c in confidenceLevels" :key="c.pct" class="text-center p-3 bg-gray-50 dark:bg-slate-600 rounded-lg">
                 <div class="text-lg font-bold text-indigo-600 dark:text-indigo-400">{{ c.pct }}</div>
                 <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">{{ c.label[lang] }}</div>
               </div>
@@ -887,11 +1038,7 @@ function printPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="p in [
-                    { name: { en: 'Light', ar: '\u062E\u0641\u064A\u0641' }, cats: 8, timeout: '30s', desc: { en: 'Quick security check: ssl, headers, cookies, mixed_content, performance, dns, seo, content', ar: '\u0641\u062D\u0635 \u0633\u0631\u064A\u0639: ssl\u060C headers\u060C cookies\u060C mixed_content\u060C performance\u060C dns\u060C seo\u060C content' } },
-                    { name: { en: 'Standard', ar: '\u0642\u064A\u0627\u0633\u064A' }, cats: 16, timeout: '60s', desc: { en: 'Comprehensive audit: adds server_info, directory, ddos, cors, http_methods, info_disclosure, hosting, secrets', ar: '\u0641\u062D\u0635 \u0634\u0627\u0645\u0644: \u064A\u0636\u064A\u0641 server_info\u060C directory\u060C ddos\u060C cors\u060C http_methods\u060C info_disclosure\u060C hosting\u060C secrets' } },
-                    { name: { en: 'Deep', ar: '\u0639\u0645\u064A\u0642' }, cats: 25, timeout: '120s', desc: { en: 'Full assessment: all 25 scanners including malware, xss, wordpress, subdomains, and more', ar: '\u062A\u0642\u064A\u064A\u0645 \u0643\u0627\u0645\u0644: \u062C\u0645\u064A\u0639 \u0627\u0644\u0640 25 \u0641\u0627\u062D\u0635 \u0628\u0645\u0627 \u0641\u064A\u0647\u0627 malware\u060C xss\u060C wordpress\u060C subdomains\u060C \u0648\u0627\u0644\u0645\u0632\u064A\u062F' } },
-                  ]" :key="p.name.en" class="border-t border-gray-100 dark:border-slate-600">
+                  <tr v-for="p in scanPoliciesData" :key="p.name.en" class="border-t border-gray-100 dark:border-slate-600">
                     <td class="py-3 font-semibold text-gray-900 dark:text-white">{{ p.name[lang] }}</td>
                     <td class="py-3 text-gray-600 dark:text-gray-400">{{ p.cats }}</td>
                     <td class="py-3 text-gray-600 dark:text-gray-400 font-mono">{{ p.timeout }}</td>
@@ -905,48 +1052,7 @@ function printPage() {
 
         <!-- Reports -->
         <div v-if="activeTab === 'reports'" class="space-y-4">
-          <div v-for="report in [
-            {
-              icon: '\u{1F4D1}', title: { en: 'PDF Report', ar: '\u062A\u0642\u0631\u064A\u0631 PDF' },
-              desc: {
-                en: 'Comprehensive PDF report including: overall score with grade, category-by-category breakdown, individual check details with pass/fail status, OWASP Top 10 compliance mapping, remediation recommendations, score history chart, and executive summary.',
-                ar: '\u062A\u0642\u0631\u064A\u0631 PDF \u0634\u0627\u0645\u0644 \u064A\u062A\u0636\u0645\u0646: \u0627\u0644\u062F\u0631\u062C\u0629 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A\u0629 \u0645\u0639 \u0627\u0644\u062A\u0642\u062F\u064A\u0631\u060C \u062A\u0641\u0635\u064A\u0644 \u0643\u0644 \u0641\u0626\u0629\u060C \u062A\u0641\u0627\u0635\u064A\u0644 \u0643\u0644 \u0641\u062D\u0635 \u0645\u0639 \u062D\u0627\u0644\u0629 \u0627\u0644\u0646\u062C\u0627\u062D/\u0627\u0644\u0641\u0634\u0644\u060C \u062E\u0631\u064A\u0637\u0629 \u0627\u0644\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 OWASP Top 10\u060C \u062A\u0648\u0635\u064A\u0627\u062A \u0627\u0644\u0625\u0635\u0644\u0627\u062D\u060C \u0631\u0633\u0645 \u062A\u0627\u0631\u064A\u062E \u0627\u0644\u062F\u0631\u062C\u0627\u062A\u060C \u0648\u0645\u0644\u062E\u0635 \u062A\u0646\u0641\u064A\u0630\u064A.'
-              },
-              how: { en: 'Click "Download PDF" on any scan result page.', ar: '\u0627\u0636\u063A\u0637 "\u062A\u062D\u0645\u064A\u0644 PDF" \u0641\u064A \u0623\u064A \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C \u0641\u062D\u0635.' }
-            },
-            {
-              icon: '\u{1F4CA}', title: { en: 'CSV Export', ar: '\u062A\u0635\u062F\u064A\u0631 CSV' },
-              desc: {
-                en: 'Export scan data as CSV for spreadsheet analysis in Excel, Google Sheets, or other tools. Includes all check names, scores, statuses, and OWASP/CWE mappings.',
-                ar: '\u062A\u0635\u062F\u064A\u0631 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0641\u062D\u0635 \u0643 CSV \u0644\u062A\u062D\u0644\u064A\u0644 \u0627\u0644\u062C\u062F\u0627\u0648\u0644 \u0641\u064A Excel \u0623\u0648 Google Sheets. \u064A\u062A\u0636\u0645\u0646 \u062C\u0645\u064A\u0639 \u0623\u0633\u0645\u0627\u0621 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0648\u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0648\u0627\u0644\u062D\u0627\u0644\u0627\u062A \u0648\u062A\u0639\u064A\u064A\u0646\u0627\u062A OWASP/CWE.'
-              },
-              how: { en: 'Available in the scan results export menu.', ar: '\u0645\u062A\u0627\u062D \u0641\u064A \u0642\u0627\u0626\u0645\u0629 \u062A\u0635\u062F\u064A\u0631 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635.' }
-            },
-            {
-              icon: '\u{1F4BB}', title: { en: 'SARIF Export', ar: '\u062A\u0635\u062F\u064A\u0631 SARIF' },
-              desc: {
-                en: 'Static Analysis Results Interchange Format (SARIF) for integration with GitHub Code Scanning, VS Code SARIF Viewer, and other SAST tools.',
-                ar: '\u0635\u064A\u063A\u0629 SARIF \u0644\u0644\u062A\u0643\u0627\u0645\u0644 \u0645\u0639 GitHub Code Scanning \u0648VS Code SARIF Viewer \u0648\u0623\u062F\u0648\u0627\u062A SAST \u0627\u0644\u0623\u062E\u0631\u0649.'
-              },
-              how: { en: 'Export from the scan results page or via API.', ar: '\u0627\u0644\u062A\u0635\u062F\u064A\u0631 \u0645\u0646 \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635 \u0623\u0648 \u0639\u0628\u0631 API.' }
-            },
-            {
-              icon: '\u{1F916}', title: { en: 'AI Analysis', ar: '\u062A\u062D\u0644\u064A\u0644 AI' },
-              desc: {
-                en: 'AI-powered analysis using your configured LLM provider (DeepSeek, OpenAI, Anthropic, etc.). Provides: executive summary, detailed fix instructions, step-by-step roadmap to improve, and code examples for server configuration.',
-                ar: '\u062A\u062D\u0644\u064A\u0644 \u0645\u062F\u0639\u0648\u0645 \u0628\u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064A \u0628\u0627\u0633\u062A\u062E\u062F\u0627\u0645 \u0645\u0632\u0648\u062F LLM \u0627\u0644\u0645\u0647\u064A\u0623. \u064A\u0642\u062F\u0645: \u0645\u0644\u062E\u0635 \u062A\u0646\u0641\u064A\u0630\u064A\u060C \u062A\u0639\u0644\u064A\u0645\u0627\u062A \u0625\u0635\u0644\u0627\u062D \u0645\u0641\u0635\u0644\u0629\u060C \u062E\u0627\u0631\u0637\u0629 \u0637\u0631\u064A\u0642 \u0644\u0644\u062A\u062D\u0633\u064A\u0646\u060C \u0648\u0623\u0645\u062B\u0644\u0629 \u0623\u0643\u0648\u0627\u062F \u0644\u0625\u0639\u062F\u0627\u062F \u0627\u0644\u062E\u0627\u062F\u0645.'
-              },
-              how: { en: 'Click "AI Analysis" on any result page. Requires AI provider configuration in Settings.', ar: '\u0627\u0636\u063A\u0637 "\u062A\u062D\u0644\u064A\u0644 AI" \u0641\u064A \u0623\u064A \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C. \u064A\u062A\u0637\u0644\u0628 \u062A\u0647\u064A\u0626\u0629 \u0645\u0632\u0648\u062F AI \u0641\u064A \u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A.' }
-            },
-            {
-              icon: '\u{1F6E1}\uFE0F', title: { en: 'OWASP Compliance Report', ar: '\u062A\u0642\u0631\u064A\u0631 \u0627\u0644\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 OWASP' },
-              desc: {
-                en: 'Maps all scan findings to the OWASP Top 10 2021 categories (A01-A10). Shows compliance percentage per category and which checks passed or failed for each OWASP risk.',
-                ar: '\u064A\u0631\u0628\u0637 \u062C\u0645\u064A\u0639 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635 \u0628\u0641\u0626\u0627\u062A OWASP Top 10 2021 (A01-A10). \u064A\u0639\u0631\u0636 \u0646\u0633\u0628\u0629 \u0627\u0644\u062A\u0648\u0627\u0641\u0642 \u0644\u0643\u0644 \u0641\u0626\u0629 \u0648\u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0627\u0644\u0646\u0627\u062C\u062D\u0629 \u0648\u0627\u0644\u0641\u0627\u0634\u0644\u0629 \u0644\u0643\u0644 \u062E\u0637\u0631.'
-              },
-              how: { en: 'Available in the scan result detail page under the Compliance tab.', ar: '\u0645\u062A\u0627\u062D \u0641\u064A \u0635\u0641\u062D\u0629 \u062A\u0641\u0627\u0635\u064A\u0644 \u0646\u062A\u064A\u062C\u0629 \u0627\u0644\u0641\u062D\u0635 \u062A\u062D\u062A \u062A\u0628\u0648\u064A\u0628 \u0627\u0644\u062A\u0648\u0627\u0641\u0642.' }
-            },
-          ]" :key="report.title.en" class="bg-white dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600 p-6">
+          <div v-for="report in reportsData" :key="report.title.en" class="bg-white dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600 p-6">
             <div class="flex items-start gap-4">
               <span class="text-3xl flex-shrink-0">{{ report.icon }}</span>
               <div>
@@ -1015,8 +1121,7 @@ function printPage() {
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">cURL</span>
-                  <button @click="copyText('curl -X POST https://your-vscan-domain/api/scans \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -H \"Content-Type: application/json\" \\\n  -d \'{\"target_ids\": [1, 2], \"policy\": \"standard\"}\'')
-                  " class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
+                  <button @click="copyText(curlSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">curl -X POST https://your-vscan-domain/api/scans \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -1026,8 +1131,7 @@ function printPage() {
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Python</span>
-                  <button @click="copyText('import requests\n\nresp = requests.post(\n    \"https://your-vscan-domain/api/scans\",\n    headers={\"X-API-Key\": \"YOUR_API_KEY\"},\n    json={\"target_ids\": [1, 2], \"policy\": \"standard\"}\n)\nprint(resp.json())')
-                  " class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
+                  <button @click="copyText(pythonSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">import requests
 
@@ -1041,8 +1145,7 @@ print(resp.json())</div>
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">JavaScript (fetch)</span>
-                  <button @click="copyText('const resp = await fetch(\"https://your-vscan-domain/api/scans\", {\n  method: \"POST\",\n  headers: {\n    \"X-API-Key\": \"YOUR_API_KEY\",\n    \"Content-Type\": \"application/json\",\n  },\n  body: JSON.stringify({ target_ids: [1, 2], policy: \"standard\" }),\n});\nconst data = await resp.json();\nconsole.log(data);')
-                  " class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
+                  <button @click="copyText(jsSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
                 </div>
                 <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">const resp = await fetch("https://your-vscan-domain/api/scans", {
   method: "POST",
@@ -1064,12 +1167,7 @@ console.log(data);</div>
               {{ lang === 'ar' ? '\u062D\u062F\u0648\u062F \u0627\u0644\u0645\u0639\u062F\u0644' : 'Rate Limits' }}
             </h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div v-for="rl in [
-                { plan: { en: 'Free', ar: '\u0645\u062C\u0627\u0646\u064A' }, limit: '60 req/min' },
-                { plan: { en: 'Basic', ar: '\u0623\u0633\u0627\u0633\u064A' }, limit: '120 req/min' },
-                { plan: { en: 'Pro', ar: '\u0627\u062D\u062A\u0631\u0627\u0641\u064A' }, limit: '300 req/min' },
-                { plan: { en: 'Enterprise', ar: '\u0645\u0624\u0633\u0633\u0627\u062A' }, limit: '1000 req/min' },
-              ]" :key="rl.plan.en" class="text-center p-3 bg-gray-50 dark:bg-slate-600 rounded-lg">
+              <div v-for="rl in rateLimitsData" :key="rl.plan.en" class="text-center p-3 bg-gray-50 dark:bg-slate-600 rounded-lg">
                 <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ rl.plan[lang] }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">{{ rl.limit }}</div>
               </div>
@@ -1079,57 +1177,7 @@ console.log(data);</div>
 
         <!-- Integrations -->
         <div v-if="activeTab === 'integrations'" class="space-y-4">
-          <div v-for="integ in [
-            {
-              icon: '\u{1F514}', title: { en: 'Webhooks', ar: '\u0627\u0644\u0648\u064A\u0628\u0647\u0648\u0643' },
-              desc: {
-                en: 'Send scan results to Slack, Telegram, Discord, or any custom URL. Configure webhook endpoints in the Webhooks page. Supports JSON payloads with scan summary, scores, and detailed findings.',
-                ar: '\u0623\u0631\u0633\u0644 \u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0641\u062D\u0635 \u0625\u0644\u0649 Slack\u060C Telegram\u060C Discord\u060C \u0623\u0648 \u0623\u064A URL \u0645\u062E\u0635\u0635. \u0647\u064A\u0651\u0626 \u0646\u0642\u0627\u0637 \u0627\u0644\u0648\u064A\u0628\u0647\u0648\u0643 \u0641\u064A \u0635\u0641\u062D\u0629 \u0627\u0644\u0625\u0634\u0639\u0627\u0631\u0627\u062A. \u064A\u062F\u0639\u0645 \u062D\u0645\u0648\u0644\u0627\u062A JSON \u0645\u0639 \u0645\u0644\u062E\u0635 \u0627\u0644\u0641\u062D\u0635 \u0648\u0627\u0644\u062F\u0631\u062C\u0627\u062A \u0648\u0627\u0644\u0646\u062A\u0627\u0626\u062C \u0627\u0644\u062A\u0641\u0635\u064A\u0644\u064A\u0629.'
-              }
-            },
-            {
-              icon: '\u{1F4E7}', title: { en: 'Email Alerts', ar: '\u062A\u0646\u0628\u064A\u0647\u0627\u062A \u0627\u0644\u0628\u0631\u064A\u062F' },
-              desc: {
-                en: 'Receive email notifications when scans complete. Configure SMTP settings for custom email delivery. Alert types: scan completion, score drop below threshold, scheduled scan failures.',
-                ar: '\u0627\u0633\u062A\u0644\u0645 \u0625\u0634\u0639\u0627\u0631\u0627\u062A \u0628\u0631\u064A\u062F \u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A \u0639\u0646\u062F \u0627\u0643\u062A\u0645\u0627\u0644 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A. \u0647\u064A\u0651\u0626 \u0625\u0639\u062F\u0627\u062F\u0627\u062A SMTP \u0644\u062A\u0633\u0644\u064A\u0645 \u0628\u0631\u064A\u062F \u0645\u062E\u0635\u0635. \u0623\u0646\u0648\u0627\u0639 \u0627\u0644\u062A\u0646\u0628\u064A\u0647\u0627\u062A: \u0627\u0643\u062A\u0645\u0627\u0644 \u0627\u0644\u0641\u062D\u0635\u060C \u0627\u0646\u062E\u0641\u0627\u0636 \u0627\u0644\u062F\u0631\u062C\u0629\u060C \u0641\u0634\u0644 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0627\u0644\u0645\u062C\u062F\u0648\u0644\u0629.'
-              }
-            },
-            {
-              icon: '\u{1F4BB}', title: { en: 'GitHub Actions', ar: 'GitHub Actions' },
-              desc: {
-                en: 'Integrate VScan into your CI/CD pipeline. Run scans on every deployment and fail the build if security score drops below threshold.',
-                ar: '\u0627\u062F\u0645\u062C VScan \u0641\u064A \u062E\u0637 CI/CD \u0627\u0644\u062E\u0627\u0635 \u0628\u0643. \u0634\u063A\u0651\u0644 \u0641\u062D\u0648\u0635\u0627\u062A \u0645\u0639 \u0643\u0644 \u0646\u0634\u0631 \u0648\u0623\u0641\u0634\u0644 \u0627\u0644\u0628\u0646\u0627\u0621 \u0625\u0630\u0627 \u0627\u0646\u062E\u0641\u0636\u062A \u0627\u0644\u062F\u0631\u062C\u0629 \u0639\u0646 \u0627\u0644\u062D\u062F.'
-              }
-            },
-            {
-              icon: '\u{1F3AB}', title: { en: 'Jira Integration', ar: '\u062A\u0643\u0627\u0645\u0644 Jira' },
-              desc: {
-                en: 'Automatically create Jira tickets for failed security checks. Each ticket includes check details, OWASP mapping, remediation steps, and severity level.',
-                ar: '\u0623\u0646\u0634\u0626 \u062A\u0630\u0627\u0643\u0631 Jira \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0644\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0627\u0644\u0641\u0627\u0634\u0644\u0629. \u062A\u062A\u0636\u0645\u0646 \u0643\u0644 \u062A\u0630\u0643\u0631\u0629 \u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u0641\u062D\u0635 \u0648\u062A\u0639\u064A\u064A\u0646 OWASP \u0648\u062E\u0637\u0648\u0627\u062A \u0627\u0644\u0625\u0635\u0644\u0627\u062D \u0648\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u062E\u0637\u0648\u0631\u0629.'
-              }
-            },
-            {
-              icon: '\u{1F41B}', title: { en: 'GitHub Issues', ar: 'GitHub Issues' },
-              desc: {
-                en: 'Auto-create GitHub Issues for security findings. Issues are labeled with severity and OWASP category. Close issues automatically when the check passes on the next scan.',
-                ar: '\u0623\u0646\u0634\u0626 GitHub Issues \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0644\u0644\u0646\u062A\u0627\u0626\u062C \u0627\u0644\u0623\u0645\u0646\u064A\u0629. \u062A\u064F\u0648\u0633\u0645 \u0627\u0644\u0645\u0634\u0643\u0644\u0627\u062A \u0628\u0627\u0644\u062E\u0637\u0648\u0631\u0629 \u0648\u0641\u0626\u0629 OWASP. \u0623\u063A\u0644\u0642 \u0627\u0644\u0645\u0634\u0643\u0644\u0627\u062A \u062A\u0644\u0642\u0627\u0626\u064A\u0627\u064B \u0639\u0646\u062F \u0646\u062C\u0627\u062D \u0627\u0644\u0641\u062D\u0635 \u0641\u064A \u0627\u0644\u0645\u0631\u0629 \u0627\u0644\u062A\u0627\u0644\u064A\u0629.'
-              }
-            },
-            {
-              icon: '\u{2328}\uFE0F', title: { en: 'CLI Tool', ar: '\u0623\u062F\u0627\u0629 \u0633\u0637\u0631 \u0627\u0644\u0623\u0648\u0627\u0645\u0631' },
-              desc: {
-                en: 'Command-line tool for running scans and retrieving results. Install and use with your API key for automation scripts and CI/CD pipelines.',
-                ar: '\u0623\u062F\u0627\u0629 \u0633\u0637\u0631 \u0623\u0648\u0627\u0645\u0631 \u0644\u062A\u0634\u063A\u064A\u0644 \u0627\u0644\u0641\u062D\u0648\u0635\u0627\u062A \u0648\u0627\u0633\u062A\u0631\u062C\u0627\u0639 \u0627\u0644\u0646\u062A\u0627\u0626\u062C. \u062B\u0628\u0651\u062A \u0648\u0627\u0633\u062A\u062E\u062F\u0645 \u0645\u0639 \u0645\u0641\u062A\u0627\u062D API \u0644\u0633\u0643\u0631\u0628\u062A\u0627\u062A \u0627\u0644\u0623\u062A\u0645\u062A\u0629 \u0648\u062E\u0637\u0648\u0637 CI/CD.'
-              }
-            },
-            {
-              icon: '\u{1F433}', title: { en: 'Docker', ar: 'Docker' },
-              desc: {
-                en: 'Run VScan in a Docker container for self-hosted deployments. One-liner command to start scanning your infrastructure.',
-                ar: '\u0634\u063A\u0651\u0644 VScan \u0641\u064A \u062D\u0627\u0648\u064A\u0629 Docker \u0644\u0644\u0646\u0634\u0631 \u0627\u0644\u0630\u0627\u062A\u064A. \u0623\u0645\u0631 \u0648\u0627\u062D\u062F \u0644\u0628\u062F\u0621 \u0641\u062D\u0635 \u0628\u0646\u064A\u062A\u0643 \u0627\u0644\u062A\u062D\u062A\u064A\u0629.'
-              }
-            },
-          ]" :key="integ.title.en" class="bg-white dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600 p-6">
+          <div v-for="integ in integrationsData" :key="integ.title.en" class="bg-white dark:bg-slate-700 rounded-xl border border-gray-200 dark:border-slate-600 p-6">
             <div class="flex items-start gap-4">
               <span class="text-3xl flex-shrink-0">{{ integ.icon }}</span>
               <div>
@@ -1145,7 +1193,7 @@ console.log(data);</div>
               <h3 class="text-lg font-bold text-gray-900 dark:text-white">
                 {{ lang === 'ar' ? '\u0645\u062B\u0627\u0644 GitHub Actions' : 'GitHub Actions Example' }}
               </h3>
-              <button @click="copyText('name: VScan Security Check\non:\n  push:\n    branches: [main]\njobs:\n  security-scan:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Trigger VScan\n        run: |\n          curl -X POST https://your-vscan-domain/api/scans \\\n            -H \"X-API-Key: ${{ secrets.VSCAN_API_KEY }}\" \\\n            -H \"Content-Type: application/json\" \\\n            -d \\'{ \"target_ids\": [1], \"policy\": \"standard\" }\\'')" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
+              <button @click="copyText(ghActionsSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
             </div>
             <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">name: VScan Security Check
 on:
@@ -1169,7 +1217,7 @@ jobs:
               <h3 class="text-lg font-bold text-gray-900 dark:text-white">
                 {{ lang === 'ar' ? '\u0645\u062B\u0627\u0644 Docker' : 'Docker Example' }}
               </h3>
-              <button @click="copyText('docker run -d --name vscan -p 8080:8080 \\\n  -e DATABASE_URL=postgres://user:pass@host/vscan \\\n  -e JWT_SECRET=your-secret \\\n  vscan-mohesr:latest')" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
+              <button @click="copyText(dockerSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
             </div>
             <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">docker run -d --name vscan -p 8080:8080 \
   -e DATABASE_URL=postgres://user:pass@host/vscan \

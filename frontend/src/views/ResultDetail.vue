@@ -310,11 +310,30 @@ async function runAIAnalysis() {
   aiLoading.value = true
   showAI.value = true
   try {
-    const { data } = await analyzeResult(route.params.id)
-    aiAnalysis.value = data
+    // First trigger the analysis
+    await analyzeResult(route.params.id)
+    // Then poll for the result (analysis runs async on server)
+    let attempts = 0
+    const maxAttempts = 60 // 2 minutes max
+    const poll = async () => {
+      attempts++
+      try {
+        const { data } = await getAIAnalysis(route.params.id)
+        if (data && data.status === 'completed' && data.analysis) {
+          aiAnalysis.value = data
+          aiLoading.value = false
+          return
+        }
+      } catch { /* still pending */ }
+      if (attempts < maxAttempts && aiLoading.value) {
+        setTimeout(poll, 2000)
+      } else {
+        aiLoading.value = false
+      }
+    }
+    setTimeout(poll, 3000) // Wait 3s then start polling
   } catch (e) {
-    alert(e.response?.data?.error || 'AI analysis failed')
-  } finally {
+    alert(e.response?.data?.error || 'AI analysis failed. Check AI settings.')
     aiLoading.value = false
   }
 }

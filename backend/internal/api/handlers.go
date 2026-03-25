@@ -1,6 +1,7 @@
 package api
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -89,7 +90,7 @@ func GetScanJobs(c *fiber.Ctx) error {
 	ScopedDB(c).Order("created_at desc").Find(&jobs)
 
 	// Add progress info to each job
-	var result []fiber.Map
+	result := make([]fiber.Map, 0)
 	for _, job := range jobs {
 		var total, completed, failed int64
 		config.DB.Model(&models.ScanResult{}).Where("scan_job_id = ?", job.ID).Count(&total)
@@ -813,7 +814,33 @@ func GetRemediationGuide(c *fiber.Ctx) error {
 
 	guide, exists := scanner.RemediationDB[checkName]
 	if !exists {
-		return c.Status(404).JSON(fiber.Map{"error": "No remediation guide found for this check"})
+		// Fuzzy match: try partial matching (e.g., "DMARC Record (Email Security)" → "DMARC Record")
+		checkLower := strings.ToLower(checkName)
+		for key, g := range scanner.RemediationDB {
+			keyLower := strings.ToLower(key)
+			if strings.Contains(checkLower, keyLower) || strings.Contains(keyLower, checkLower) {
+				guide = g
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			// Try matching just the first two words
+			parts := strings.Fields(checkName)
+			if len(parts) >= 2 {
+				prefix := strings.ToLower(parts[0] + " " + parts[1])
+				for key, g := range scanner.RemediationDB {
+					if strings.HasPrefix(strings.ToLower(key), prefix) {
+						guide = g
+						exists = true
+						break
+					}
+				}
+			}
+		}
+		if !exists {
+			return c.Status(404).JSON(fiber.Map{"error": "No remediation guide found for this check"})
+		}
 	}
 
 	if serverType != "all" {
