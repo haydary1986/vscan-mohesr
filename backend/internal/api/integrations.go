@@ -39,7 +39,7 @@ func CreateGitHubIssue(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "Check result not found"})
 	}
 
-	title := fmt.Sprintf("[VScan] %s: %s (%s)", check.Severity, check.CheckName, check.OWASP)
+	title := fmt.Sprintf("[Seku] %s: %s (%s)", check.Severity, check.CheckName, check.OWASP)
 	body := fmt.Sprintf(
 		"## Security Finding\n\n"+
 			"**Check:** %s\n"+
@@ -50,7 +50,7 @@ func CreateGitHubIssue(c *fiber.Ctx) error {
 			"**OWASP:** %s\n"+
 			"**CWE:** %s\n\n"+
 			"### Details\n%s\n\n"+
-			"---\n*Created by VScan-MOHESR*",
+			"---\n*Created by Seku*",
 		check.CheckName, check.Category, check.Score, check.Severity,
 		check.CVSSScore, check.CVSSRating, check.OWASP, check.CWE, check.Details,
 	)
@@ -131,12 +131,12 @@ func CreateJiraIssue(c *fiber.Ctx) error {
 	payload := map[string]interface{}{
 		"fields": map[string]interface{}{
 			"project":  map[string]string{"key": req.ProjectKey},
-			"summary":  fmt.Sprintf("[VScan] %s: %s", check.Severity, check.CheckName),
+			"summary":  fmt.Sprintf("[Seku] %s: %s", check.Severity, check.CheckName),
 			"description": fmt.Sprintf("h2. Security Finding\n\n*Check:* %s\n*Category:* %s\n*Score:* %.0f/1000\n*CVSS:* %.1f\n*OWASP:* %s\n*CWE:* %s\n\nh3. Details\n%s",
 				check.CheckName, check.Category, check.Score, check.CVSSScore, check.OWASP, check.CWE, check.Details),
 			"issuetype": map[string]string{"name": "Bug"},
 			"priority":  map[string]string{"name": priority},
-			"labels":    []string{"vscan", "security", check.Severity},
+			"labels":    []string{"seku", "security", check.Severity},
 		},
 	}
 

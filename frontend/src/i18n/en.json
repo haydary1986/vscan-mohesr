@@ -90,7 +90,7 @@
     "ctaSub": "Sign up now and get a free security scan for your website",
     "ctaButton": "Sign Up Free — No Credit Card Required",
     "ctaNote": "Free plan includes: 5 websites | 10 scans | 5 security categories",
-    "signupModalTitle": "Welcome to VScan",
+    "signupModalTitle": "Welcome to Seku",
     "signupModalSub": "You'll start with the Free plan which includes:",
     "signupModalFeature1": "5 websites to scan",
     "signupModalFeature2": "10 scans per month",
@@ -351,7 +351,7 @@
   },
   "docs": {
     "title": "Documentation Center",
-    "subtitle": "Everything you need to know about VScan",
+    "subtitle": "Everything you need to know about Seku",
     "search": "Search documentation...",
     "gettingStarted": "Getting Started",
     "scanners": "Scanners",

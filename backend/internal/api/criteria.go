@@ -2,15 +2,15 @@ package api
 
 import "github.com/gofiber/fiber/v2"
 
-// GetScanCriteria returns the complete VScan-MOHESR scoring methodology as JSON.
+// GetScanCriteria returns the complete Seku scoring methodology as JSON.
 // This is a PUBLIC endpoint – no authentication required.
 func GetScanCriteria(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"methodology": fiber.Map{
-			"name":        "VScan-MOHESR Security Assessment Methodology",
+			"name":        "Seku Security Assessment Methodology",
 			"version":     "2.0",
 			"max_score":   1000,
-			"description": "Comprehensive website security assessment framework developed for the Iraqi Ministry of Higher Education and Scientific Research (MOHESR). This methodology evaluates 15 categories across 50+ individual checks to produce a normalized score on a 1000-point scale. Each category carries a percentage weight that reflects its relative importance to the overall security posture of a website.",
+			"description": "Comprehensive website security assessment framework. This methodology evaluates 15 categories across 50+ individual checks to produce a normalized score on a 1000-point scale. Each category carries a percentage weight that reflects its relative importance to the overall security posture of a website.",
 
 			"scoring_formula": "Overall Score = SUM(category_weighted_score * category_weight) / SUM(category_weight), where each check_score is on a 0-1000 scale across 15 categories.",
 

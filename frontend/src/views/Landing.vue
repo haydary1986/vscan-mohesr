@@ -114,7 +114,7 @@ const steps = computed(() => [
               </svg>
             </div>
 
-            <h3 class="text-2xl font-bold text-gray-900 text-center mb-2">{{ t('مرحباً بك في VScan', 'Welcome to VScan') }}</h3>
+            <h3 class="text-2xl font-bold text-gray-900 text-center mb-2">{{ t('مرحباً بك في Seku', 'Welcome to Seku') }}</h3>
             <p class="text-gray-600 text-center mb-5">{{ t('ستبدأ بالخطة المجانية التي تشمل:', 'You will start with the free plan that includes:') }}</p>
 
             <div class="bg-indigo-50 rounded-xl p-5 mb-5 space-y-3">
@@ -164,7 +164,7 @@ const steps = computed(() => [
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
               </svg>
             </div>
-            <span class="text-xl font-bold text-gray-900">VScan</span>
+            <span class="text-xl font-bold text-gray-900">Seku</span>
           </div>
 
           <!-- Center links (hidden on mobile) -->
@@ -365,7 +365,7 @@ const steps = computed(() => [
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
               </div>
-              <span class="text-white font-bold text-lg">VScan-MOHESR</span>
+              <span class="text-white font-bold text-lg">Seku</span>
             </div>
             <p class="text-sm leading-relaxed">{{ t('منصة فحص أمان المواقع الإلكترونية للمؤسسات التعليمية والحكومية العراقية.', 'Web security assessment platform for Iraqi educational and governmental institutions.') }}</p>
           </div>
@@ -391,7 +391,7 @@ const steps = computed(() => [
         </div>
 
         <div class="pt-8 text-center text-sm">
-          <p>{{ t('جميع الحقوق محفوظة', 'All Rights Reserved') }} &copy; 2026 VScan-MOHESR</p>
+          <p>{{ t('جميع الحقوق محفوظة', 'All Rights Reserved') }} &copy; 2026 Seku</p>
         </div>
       </div>
     </footer>

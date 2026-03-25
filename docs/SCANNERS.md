@@ -1,8 +1,8 @@
-# VScan Scanner Documentation — Complete Technical Reference
+# Seku Scanner Documentation — Complete Technical Reference
 
 > **Version:** 1.0
 > **Last Updated:** 2026-03-25
-> **Engine:** VScan-MOHESR Batch Vulnerability Scanner
+> **Engine:** Seku Batch Vulnerability Scanner
 > **Scoring Scale:** 0–1000 per check (weighted average for overall score)
 
 ---
@@ -2067,4 +2067,4 @@ Informational        ███████████████████�
 
 ---
 
-*This document was generated from the VScan-MOHESR source code and represents the exact scoring logic implemented in the scanner engine.*
+*This document was generated from the Seku source code and represents the exact scoring logic implemented in the scanner engine.*

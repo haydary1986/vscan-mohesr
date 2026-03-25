@@ -81,7 +81,7 @@ onMounted(async () => {
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">API Keys</h1>
-        <p class="text-gray-500 mt-1">Manage programmatic access to VScan API</p>
+        <p class="text-gray-500 mt-1">Manage programmatic access to Seku API</p>
       </div>
       <button
         v-if="hasAPIAccess"
@@ -98,7 +98,7 @@ onMounted(async () => {
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
       </svg>
       <h3 class="text-xl font-semibold text-gray-900 mb-2">API Access Requires Pro or Enterprise Plan</h3>
-      <p class="text-gray-600 mb-4">Upgrade your plan to access the VScan API and automate your security scanning workflow.</p>
+      <p class="text-gray-600 mb-4">Upgrade your plan to access the Seku API and automate your security scanning workflow.</p>
       <router-link to="/upgrade" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-block">
         Upgrade Now
       </router-link>

@@ -1,6 +1,6 @@
-name: 'VScan Security Scanner'
+name: 'Seku Security Scanner'
 description: 'Scan websites for security vulnerabilities with 22 categories and 1000-point scoring'
-author: 'VScan-MOHESR'
+author: 'Seku'
 branding:
   icon: 'shield'
   color: 'blue'

@@ -241,15 +241,15 @@ func colorize(enabled bool, color, text string) string {
 // printBanner prints the ASCII art banner.
 func printBanner(useColor bool) {
 	banner := `
- ██╗   ██╗███████╗ ██████╗ █████╗ ███╗   ██╗
- ██║   ██║██╔════╝██╔════╝██╔══██╗████╗  ██║
- ██║   ██║███████╗██║     ███████║██╔██╗ ██║
- ╚██╗ ██╔╝╚════██║██║     ██╔══██║██║╚██╗██║
-  ╚████╔╝ ███████║╚██████╗██║  ██║██║ ╚████║
-   ╚═══╝  ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝
+ ███████╗███████╗██╗  ██╗██╗   ██╗
+ ██╔════╝██╔════╝██║ ██╔╝██║   ██║
+ ███████╗█████╗  █████╔╝ ██║   ██║
+ ╚════██║██╔══╝  ██╔═██╗ ██║   ██║
+ ███████║███████╗██║  ██╗╚██████╔╝
+ ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝
 `
 	fmt.Print(colorize(useColor, colorCyan, banner))
-	fmt.Println(colorize(useColor, colorDim, "  MOHESR Web Security Scanner v"+version))
+	fmt.Println(colorize(useColor, colorDim, "  Seku — Web Security Scanner v"+version))
 	fmt.Println(colorize(useColor, colorDim, "  22 Security Categories | OWASP Top 10 Mapped"))
 	fmt.Println()
 }
@@ -722,7 +722,7 @@ func generateSARIF(outputs []ScanOutput) SARIFReport {
 			{
 				Tool: SARIFTool{
 					Driver: SARIFDriver{
-						Name:    "vscan-mohesr",
+						Name:    "seku",
 						Version: version,
 						Rules:   rules,
 					},
@@ -737,7 +737,7 @@ func generateSARIF(outputs []ScanOutput) SARIFReport {
 func printHelp(detailed bool) {
 	fmt.Fprintf(os.Stderr, `
 %s%s╔═══════════════════════════════════════════════════════════╗
-║              VScan-MOHESR CLI v%s                       ║
+║              Seku CLI v%s                                ║
 ║         Web Security Scanner — 25 Categories              ║
 ║         https://github.com/haydary1986/vscan-mohesr       ║
 ╚═══════════════════════════════════════════════════════════╝%s
@@ -862,7 +862,7 @@ func printHelp(detailed bool) {
 
 // printScannerList lists all available scanners with their details.
 func printScannerList() {
-	fmt.Printf("\n%s%s VScan-MOHESR — 25 Security Scanners%s\n\n", colorBold, colorCyan, colorReset)
+	fmt.Printf("\n%s%s Seku — 25 Security Scanners%s\n\n", colorBold, colorCyan, colorReset)
 
 	type scannerInfo struct {
 		category string

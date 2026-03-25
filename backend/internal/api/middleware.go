@@ -93,5 +93,5 @@ func HealthCheck(c *fiber.Ctx) error {
 	if err := sqlDB.Ping(); err != nil {
 		return c.Status(503).JSON(fiber.Map{"status": "unhealthy", "error": "database unreachable"})
 	}
-	return c.JSON(fiber.Map{"status": "healthy", "service": "vscan-mohesr"})
+	return c.JSON(fiber.Map{"status": "healthy", "service": "seku"})
 }

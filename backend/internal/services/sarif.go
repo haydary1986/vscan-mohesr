@@ -171,7 +171,7 @@ func GenerateSARIF(result *models.ScanResult, checks []models.CheckResult) ([]by
 	report.Runs = []SARIFRun{{
 		Tool: SARIFTool{
 			Driver: SARIFDriver{
-				Name:           "VScan-MOHESR",
+				Name:           "Seku",
 				Version:        "1.0.0",
 				InformationURI: "https://sec.erticaz.com",
 				Rules:          rules,

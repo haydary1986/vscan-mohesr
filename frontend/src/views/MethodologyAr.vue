@@ -196,7 +196,7 @@ onMounted(async () => {
             معيار التقييم الأمني العالمي للمواقع الإلكترونية
           </div>
           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            VScan-MOHESR منهجية التقييم
+            Seku منهجية التقييم
           </h1>
           <p class="mt-4 text-lg sm:text-xl text-indigo-100 max-w-3xl mx-auto leading-relaxed" v-if="methodology">
             {{ methodology.description }}
@@ -449,13 +449,13 @@ onMounted(async () => {
           </svg>
           <h3 class="text-lg font-bold text-gray-900 mb-2">حول هذه المنهجية</h3>
           <p class="text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            يتم تطبيق هذه المنهجية بشكل موحد على جميع المواقع الإلكترونية التي يتم تقييمها بواسطة نظام VScan-MOHESR.
+            يتم تطبيق هذه المنهجية بشكل موحد على جميع المواقع الإلكترونية التي يتم تقييمها بواسطة نظام Seku.
             تم تصميم هذا الإطار لتوفير تقييم شفاف وقابل للتكرار وشامل لوضع أمان المواقع الإلكترونية.
             يتم إجراء جميع الفحوصات تلقائياً باستخدام تقنيات غير تطفلية.
             يتم تحديث الدرجات مع كل عملية فحص لتعكس الحالة الراهنة لإعدادات أمان الموقع.
           </p>
           <p class="text-xs text-gray-400 mt-4">
-            إطار التقييم الأمني VScan-MOHESR الإصدار {{ methodology.version }}
+            إطار التقييم الأمني Seku الإصدار {{ methodology.version }}
           </p>
         </footer>
       </div>

@@ -43,7 +43,7 @@ func sendEmail(cfg models.EmailConfig, to string, job *models.ScanJob, results [
 
 	grade := scoreToGradeEmail(avgScore)
 
-	subject := fmt.Sprintf("VScan Report: %s — Score %.0f/1000 (%s)", job.Name, avgScore, grade)
+	subject := fmt.Sprintf("Seku Report: %s — Score %.0f/1000 (%s)", job.Name, avgScore, grade)
 
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf(`<!DOCTYPE html>
@@ -51,7 +51,7 @@ func sendEmail(cfg models.EmailConfig, to string, job *models.ScanJob, results [
 <head><meta charset="utf-8"></head>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
 <div style="background:linear-gradient(135deg,#4f46e5,#2563eb);color:white;padding:30px;border-radius:12px;text-align:center;">
-    <h1 style="margin:0;">VScan Security Report</h1>
+    <h1 style="margin:0;">Seku Security Report</h1>
     <p style="margin:10px 0 0;opacity:0.8;">%s</p>
 </div>
 <div style="padding:20px;background:#f8fafc;border-radius:0 0 12px 12px;">
@@ -83,7 +83,7 @@ func sendEmail(cfg models.EmailConfig, to string, job *models.ScanJob, results [
     </div>
 </div>
 <p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:20px;">
-    Sent by VScan-MOHESR
+    Sent by Seku
 </p>
 </body></html>`)
 
@@ -102,13 +102,13 @@ func sendEmail(cfg models.EmailConfig, to string, job *models.ScanJob, results [
 func SendTestEmail(cfg models.EmailConfig, to string) error {
 	auth := smtp.PlainAuth("", cfg.SMTPUser, cfg.SMTPPass, cfg.SMTPHost)
 
-	subject := "VScan-MOHESR: Test Email"
+	subject := "Seku: Test Email"
 	htmlBody := `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
 <div style="background:linear-gradient(135deg,#4f46e5,#2563eb);color:white;padding:30px;border-radius:12px;text-align:center;">
-    <h1 style="margin:0;">VScan-MOHESR</h1>
+    <h1 style="margin:0;">Seku</h1>
     <p style="margin:10px 0 0;opacity:0.8;">Test Email</p>
 </div>
 <div style="padding:20px;background:#f8fafc;border-radius:0 0 12px 12px;text-align:center;">

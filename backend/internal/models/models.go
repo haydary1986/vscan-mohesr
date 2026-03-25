@@ -246,7 +246,7 @@ type EmailConfig struct {
 	SMTPUser     string `json:"smtp_user"`
 	SMTPPass     string `json:"smtp_pass"`
 	FromEmail    string `json:"from_email"`
-	FromName     string `json:"from_name" gorm:"default:VScan-MOHESR"`
+	FromName     string `json:"from_name" gorm:"default:Seku"`
 	IsConfigured bool   `json:"is_configured" gorm:"default:false"`
 }
 

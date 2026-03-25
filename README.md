@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ VScan
+# 🛡️ Seku
 
 **The Open-Source Web Security Scanner with 1000-Point Scoring**
 
@@ -38,7 +38,7 @@ vscan example.com
 **Output:**
 ```
 ╔═══════════════════════════════════════════════════╗
-║  VScan Security Report — example.com             ║
+║  Seku Security Report — example.com              ║
 ║  Score: 847/1000 (Grade: A)                      ║
 ╠═══════════════════════════════════════════════════╣
 ║ ✅ SSL/TLS          ████████████████████░  950    ║
@@ -313,7 +313,7 @@ curl https://your-instance.com/api/targets \
 
 Every finding maps to OWASP Top 10 (2021) and CWE identifiers:
 
-| OWASP | Category | VScan Coverage |
+| OWASP | Category | Seku Coverage |
 |-------|----------|---------------|
 | A01 | Broken Access Control | CORS, HTTP Methods, Directory Exposure |
 | A02 | Cryptographic Failures | SSL/TLS, Mixed Content |
@@ -398,7 +398,7 @@ Open `http://localhost:5173` — default credentials: `admin` / `admin123`
 
 ## ⭐ Star History
 
-If VScan helps secure your websites, please star the repo — it helps others discover it!
+If Seku helps secure your websites, please star the repo — it helps others discover it!
 
 [![Star History Chart](https://api.star-history.com/svg?repos=haydary1986/vscan-mohesr&type=Date)](https://star-history.com/#haydary1986/vscan-mohesr&Date)
 

@@ -385,7 +385,7 @@ if ($request_method !~ ^(GET|HEAD|POST|OPTIONS)$) {
 ### 4.1 ملف .htaccess الكامل النهائي
 
 ```apache
-# === VScan Security Hardening for uoturath.edu.iq ===
+# === Seku Security Hardening for uoturath.edu.iq ===
 
 # Block dangerous HTTP methods
 RewriteEngine On
@@ -448,7 +448,7 @@ ServerSignature Off
 - [ ] **Plesk:** functions.php محدّث (إخفاء WordPress)
 - [ ] **Plesk:** nginx directives مضافة
 - [ ] انتظر 5 دقائق ليتم تطبيق إعدادات Cloudflare
-- [ ] أعد الفحص في VScan
+- [ ] أعد الفحص في Seku
 
 ### 4.3 الوقت المتوقع لتطبيق التغييرات
 

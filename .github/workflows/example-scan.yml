@@ -12,9 +12,9 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Run VScan Security Scanner
+      - name: Run Seku Security Scanner
         uses: haydary1986/vscan-mohesr@main
-        id: vscan
+        id: seku
         with:
           url: ${{ github.event.inputs.url }}
           output: sarif
@@ -29,5 +29,5 @@ jobs:
 
       - name: Check Score Threshold
         run: |
-          echo "Security Score: ${{ steps.vscan.outputs.score }}"
-          echo "Grade: ${{ steps.vscan.outputs.grade }}"
+          echo "Security Score: ${{ steps.seku.outputs.score }}"
+          echo "Grade: ${{ steps.seku.outputs.grade }}"

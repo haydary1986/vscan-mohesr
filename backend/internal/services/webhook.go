@@ -70,7 +70,7 @@ func sendSlackWebhook(url string, job *models.ScanJob, results []models.ScanResu
 			"type": "header",
 			"text": map[string]string{
 				"type": "plain_text",
-				"text": fmt.Sprintf("VScan: %s completed", job.Name),
+				"text": fmt.Sprintf("Seku: %s completed", job.Name),
 			},
 		},
 		{
@@ -104,7 +104,7 @@ func sendTelegramWebhook(chatID, botToken string, job *models.ScanJob, results [
 	grade := scoreToGrade(avgScore)
 
 	var lines []string
-	lines = append(lines, fmt.Sprintf("*VScan: %s completed*", escapeMarkdown(job.Name)))
+	lines = append(lines, fmt.Sprintf("*Seku: %s completed*", escapeMarkdown(job.Name)))
 	lines = append(lines, "")
 	lines = append(lines, fmt.Sprintf("Targets: %d", len(results)))
 	lines = append(lines, fmt.Sprintf("Avg Score: %.0f/1000 (%s)", avgScore, grade))
@@ -164,7 +164,7 @@ func sendDiscordWebhook(url string, job *models.ScanJob, results []models.ScanRe
 	}
 
 	embed := map[string]interface{}{
-		"title":       fmt.Sprintf("VScan: %s completed", job.Name),
+		"title":       fmt.Sprintf("Seku: %s completed", job.Name),
 		"description": strings.Join(descLines, "\n"),
 		"color":       color,
 		"fields": []map[string]interface{}{

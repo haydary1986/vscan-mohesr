@@ -126,8 +126,8 @@ const integrationsData = [
   {
     icon: '\u{1F4BB}', title: { en: 'GitHub Actions', ar: 'GitHub Actions' },
     desc: {
-      en: 'Integrate VScan into your CI/CD pipeline. Run scans on every deployment and fail the build if security score drops below threshold.',
-      ar: '\u0627\u062F\u0645\u062C VScan \u0641\u064A \u062E\u0637 CI/CD \u0627\u0644\u062E\u0627\u0635 \u0628\u0643. \u0634\u063A\u0651\u0644 \u0641\u062D\u0648\u0635\u0627\u062A \u0645\u0639 \u0643\u0644 \u0646\u0634\u0631 \u0648\u0623\u0641\u0634\u0644 \u0627\u0644\u0628\u0646\u0627\u0621 \u0625\u0630\u0627 \u0627\u0646\u062E\u0641\u0636\u062A \u0627\u0644\u062F\u0631\u062C\u0629 \u0639\u0646 \u0627\u0644\u062D\u062F.'
+      en: 'Integrate Seku into your CI/CD pipeline. Run scans on every deployment and fail the build if security score drops below threshold.',
+      ar: '\u0627\u062F\u0645\u062C Seku \u0641\u064A \u062E\u0637 CI/CD \u0627\u0644\u062E\u0627\u0635 \u0628\u0643. \u0634\u063A\u0651\u0644 \u0641\u062D\u0648\u0635\u0627\u062A \u0645\u0639 \u0643\u0644 \u0646\u0634\u0631 \u0648\u0623\u0641\u0634\u0644 \u0627\u0644\u0628\u0646\u0627\u0621 \u0625\u0630\u0627 \u0627\u0646\u062E\u0641\u0636\u062A \u0627\u0644\u062F\u0631\u062C\u0629 \u0639\u0646 \u0627\u0644\u062D\u062F.'
     }
   },
   {
@@ -154,24 +154,24 @@ const integrationsData = [
   {
     icon: '\u{1F433}', title: { en: 'Docker', ar: 'Docker' },
     desc: {
-      en: 'Run VScan in a Docker container for self-hosted deployments. One-liner command to start scanning your infrastructure.',
-      ar: '\u0634\u063A\u0651\u0644 VScan \u0641\u064A \u062D\u0627\u0648\u064A\u0629 Docker \u0644\u0644\u0646\u0634\u0631 \u0627\u0644\u0630\u0627\u062A\u064A. \u0623\u0645\u0631 \u0648\u0627\u062D\u062F \u0644\u0628\u062F\u0621 \u0641\u062D\u0635 \u0628\u0646\u064A\u062A\u0643 \u0627\u0644\u062A\u062D\u062A\u064A\u0629.'
+      en: 'Run Seku in a Docker container for self-hosted deployments. One-liner command to start scanning your infrastructure.',
+      ar: '\u0634\u063A\u0651\u0644 Seku \u0641\u064A \u062D\u0627\u0648\u064A\u0629 Docker \u0644\u0644\u0646\u0634\u0631 \u0627\u0644\u0630\u0627\u062A\u064A. \u0623\u0645\u0631 \u0648\u0627\u062D\u062F \u0644\u0628\u062F\u0621 \u0641\u062D\u0635 \u0628\u0646\u064A\u062A\u0643 \u0627\u0644\u062A\u062D\u062A\u064A\u0629.'
     }
   },
 ]
 
-const curlSnippet = 'curl -X POST https://your-vscan-domain/api/scans \\\n  -H "Authorization: Bearer YOUR_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"target_ids": [1, 2], "policy": "standard"}\''
+const curlSnippet = 'curl -X POST https://your-seku-domain/api/scans \\\n  -H "Authorization: Bearer YOUR_TOKEN" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"target_ids": [1, 2], "policy": "standard"}\''
 
 const pythonSnippet = `import requests
 
 resp = requests.post(
-    "https://your-vscan-domain/api/scans",
+    "https://your-seku-domain/api/scans",
     headers={"X-API-Key": "YOUR_API_KEY"},
     json={"target_ids": [1, 2], "policy": "standard"}
 )
 print(resp.json())`
 
-const jsSnippet = `const resp = await fetch("https://your-vscan-domain/api/scans", {
+const jsSnippet = `const resp = await fetch("https://your-seku-domain/api/scans", {
   method: "POST",
   headers: {
     "X-API-Key": "YOUR_API_KEY",
@@ -182,7 +182,7 @@ const jsSnippet = `const resp = await fetch("https://your-vscan-domain/api/scans
 const data = await resp.json();
 console.log(data);`
 
-const ghActionsSnippet = `name: VScan Security Check
+const ghActionsSnippet = `name: Seku Security Check
 on:
   push:
     branches: [main]
@@ -190,14 +190,14 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger VScan
+      - name: Trigger Seku
         run: |
-          curl -X POST https://your-vscan-domain/api/scans \\
+          curl -X POST https://your-seku-domain/api/scans \\
             -H "X-API-Key: \${{ secrets.VSCAN_API_KEY }}" \\
             -H "Content-Type: application/json" \\
             -d '{ "target_ids": [1], "policy": "standard" }'`
 
-const dockerSnippet = 'docker run -d --name vscan -p 8080:8080 \\\n  -e DATABASE_URL=postgres://user:pass@host/vscan \\\n  -e JWT_SECRET=your-secret \\\n  vscan-mohesr:latest'
+const dockerSnippet = 'docker run -d --name seku -p 8080:8080 \\\n  -e DATABASE_URL=postgres://user:pass@host/vscan \\\n  -e JWT_SECRET=your-secret \\\n  seku:latest'
 
 const tabNames = {
   'getting-started': { en: 'Getting Started', ar: '\u0627\u0644\u0628\u062F\u0621 \u0627\u0644\u0633\u0631\u064A\u0639' },
@@ -644,8 +644,8 @@ const faqItems = [
   {
     q: { en: 'Is the scan safe for my website?', ar: '\u0647\u0644 \u0627\u0644\u0641\u062D\u0635 \u0622\u0645\u0646 \u0644\u0645\u0648\u0642\u0639\u064A\u061F' },
     a: {
-      en: 'Yes, absolutely. VScan uses only safe, non-destructive techniques. We never inject malicious payloads, modify data, or attempt exploitation. Our XSS scanner uses harmless canary strings, not actual attack payloads. The scan is equivalent to visiting your website with a browser.',
-      ar: '\u0646\u0639\u0645\u060C \u0628\u0627\u0644\u062A\u0623\u0643\u064A\u062F. \u064A\u0633\u062A\u062E\u062F\u0645 VScan \u062A\u0642\u0646\u064A\u0627\u062A \u0622\u0645\u0646\u0629 \u0648\u063A\u064A\u0631 \u0645\u062F\u0645\u0631\u0629 \u0641\u0642\u0637. \u0644\u0627 \u0646\u062D\u0642\u0646 \u062D\u0645\u0648\u0644\u0627\u062A \u062E\u0628\u064A\u062B\u0629 \u0623\u0628\u062F\u0627\u064B\u060C \u0648\u0644\u0627 \u0646\u0639\u062F\u0651\u0644 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A\u060C \u0648\u0644\u0627 \u0646\u062D\u0627\u0648\u0644 \u0627\u0644\u0627\u0633\u062A\u063A\u0644\u0627\u0644. \u064A\u0633\u062A\u062E\u062F\u0645 \u0641\u0627\u062D\u0635 XSS \u0639\u0644\u0627\u0645\u0627\u062A \u063A\u064A\u0631 \u0636\u0627\u0631\u0629\u060C \u0648\u0644\u064A\u0633 \u062D\u0645\u0648\u0644\u0627\u062A \u0647\u062C\u0648\u0645 \u0641\u0639\u0644\u064A\u0629.'
+      en: 'Yes, absolutely. Seku uses only safe, non-destructive techniques. We never inject malicious payloads, modify data, or attempt exploitation. Our XSS scanner uses harmless canary strings, not actual attack payloads. The scan is equivalent to visiting your website with a browser.',
+      ar: '\u0646\u0639\u0645\u060C \u0628\u0627\u0644\u062A\u0623\u0643\u064A\u062F. \u064A\u0633\u062A\u062E\u062F\u0645 Seku \u062A\u0642\u0646\u064A\u0627\u062A \u0622\u0645\u0646\u0629 \u0648\u063A\u064A\u0631 \u0645\u062F\u0645\u0631\u0629 \u0641\u0642\u0637. \u0644\u0627 \u0646\u062D\u0642\u0646 \u062D\u0645\u0648\u0644\u0627\u062A \u062E\u0628\u064A\u062B\u0629 \u0623\u0628\u062F\u0627\u064B\u060C \u0648\u0644\u0627 \u0646\u0639\u062F\u0651\u0644 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A\u060C \u0648\u0644\u0627 \u0646\u062D\u0627\u0648\u0644 \u0627\u0644\u0627\u0633\u062A\u063A\u0644\u0627\u0644. \u064A\u0633\u062A\u062E\u062F\u0645 \u0641\u0627\u062D\u0635 XSS \u0639\u0644\u0627\u0645\u0627\u062A \u063A\u064A\u0631 \u0636\u0627\u0631\u0629\u060C \u0648\u0644\u064A\u0633 \u062D\u0645\u0648\u0644\u0627\u062A \u0647\u062C\u0648\u0645 \u0641\u0639\u0644\u064A\u0629.'
     }
   },
   {
@@ -658,8 +658,8 @@ const faqItems = [
   {
     q: { en: 'How to export results?', ar: '\u0643\u064A\u0641 \u0623\u0635\u062F\u0651\u0631 \u0627\u0644\u0646\u062A\u0627\u0626\u062C\u061F' },
     a: {
-      en: 'VScan supports multiple export formats: PDF Report (comprehensive with charts), CSV (for Excel/spreadsheet analysis), SARIF (for GitHub/VS Code integration). Go to any scan result page and click the Download button to choose your format.',
-      ar: '\u064A\u062F\u0639\u0645 VScan \u0639\u062F\u0629 \u0635\u064A\u063A \u062A\u0635\u062F\u064A\u0631: \u062A\u0642\u0631\u064A\u0631 PDF (\u0634\u0627\u0645\u0644 \u0645\u0639 \u0631\u0633\u0648\u0645 \u0628\u064A\u0627\u0646\u064A\u0629)\u060C CSV (\u0644\u062A\u062D\u0644\u064A\u0644 Excel)\u060C SARIF (\u0644\u062A\u0643\u0627\u0645\u0644 GitHub/VS Code). \u0627\u0630\u0647\u0628 \u0625\u0644\u0649 \u0623\u064A \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C \u0641\u062D\u0635 \u0648\u0627\u0636\u063A\u0637 \u0632\u0631 \u0627\u0644\u062A\u062D\u0645\u064A\u0644 \u0644\u0627\u062E\u062A\u064A\u0627\u0631 \u0627\u0644\u0635\u064A\u063A\u0629.'
+      en: 'Seku supports multiple export formats: PDF Report (comprehensive with charts), CSV (for Excel/spreadsheet analysis), SARIF (for GitHub/VS Code integration). Go to any scan result page and click the Download button to choose your format.',
+      ar: '\u064A\u062F\u0639\u0645 Seku \u0639\u062F\u0629 \u0635\u064A\u063A \u062A\u0635\u062F\u064A\u0631: \u062A\u0642\u0631\u064A\u0631 PDF (\u0634\u0627\u0645\u0644 \u0645\u0639 \u0631\u0633\u0648\u0645 \u0628\u064A\u0627\u0646\u064A\u0629)\u060C CSV (\u0644\u062A\u062D\u0644\u064A\u0644 Excel)\u060C SARIF (\u0644\u062A\u0643\u0627\u0645\u0644 GitHub/VS Code). \u0627\u0630\u0647\u0628 \u0625\u0644\u0649 \u0623\u064A \u0635\u0641\u062D\u0629 \u0646\u062A\u0627\u0626\u062C \u0641\u062D\u0635 \u0648\u0627\u0636\u063A\u0637 \u0632\u0631 \u0627\u0644\u062A\u062D\u0645\u064A\u0644 \u0644\u0627\u062E\u062A\u064A\u0627\u0631 \u0627\u0644\u0635\u064A\u063A\u0629.'
     }
   },
   {
@@ -792,7 +792,7 @@ function printPage() {
         {{ lang === 'ar' ? '\u0645\u0631\u0643\u0632 \u0627\u0644\u062A\u0648\u062B\u064A\u0642' : 'Documentation Center' }}
       </h1>
       <p class="mt-2 text-gray-600 dark:text-gray-400">
-        {{ lang === 'ar' ? '\u0643\u0644 \u0645\u0627 \u062A\u062D\u062A\u0627\u062C \u0645\u0639\u0631\u0641\u062A\u0647 \u0639\u0646 VScan' : 'Everything you need to know about VScan' }}
+        {{ lang === 'ar' ? '\u0643\u0644 \u0645\u0627 \u062A\u062D\u062A\u0627\u062C \u0645\u0639\u0631\u0641\u062A\u0647 \u0639\u0646 Seku' : 'Everything you need to know about Seku' }}
       </p>
     </div>
 
@@ -847,7 +847,7 @@ function printPage() {
         <div v-if="activeTab === 'getting-started'" class="space-y-6">
           <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
             <h2 class="text-2xl font-bold mb-2">
-              {{ lang === 'ar' ? '\u0645\u0631\u062D\u0628\u0627\u064B \u0628\u0643 \u0641\u064A VScan' : 'Welcome to VScan' }}
+              {{ lang === 'ar' ? '\u0645\u0631\u062D\u0628\u0627\u064B \u0628\u0643 \u0641\u064A Seku' : 'Welcome to Seku' }}
             </h2>
             <p class="opacity-90">
               {{ lang === 'ar' ? '\u0627\u062A\u0628\u0639 \u0647\u0630\u0647 \u0627\u0644\u062E\u0637\u0648\u0627\u062A \u0627\u0644\u0623\u0631\u0628\u0639 \u0644\u0628\u062F\u0621 \u0641\u062D\u0635 \u0623\u0645\u0627\u0646 \u0645\u0648\u0642\u0639\u0643' : 'Follow these 4 steps to start scanning your website security' }}
@@ -1073,8 +1073,8 @@ function printPage() {
             </h2>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
               {{ lang === 'ar'
-                ? '\u064A\u062F\u0639\u0645 VScan \u0637\u0631\u064A\u0642\u062A\u064A\u0646 \u0644\u0644\u0645\u0635\u0627\u062F\u0642\u0629: \u0631\u0645\u0632 JWT (\u0644\u0644\u0645\u062A\u0635\u0641\u062D) \u0648\u0645\u0641\u0627\u062A\u064A\u062D API (\u0644\u0644\u0648\u0635\u0648\u0644 \u0627\u0644\u0628\u0631\u0645\u062C\u064A). \u0623\u0631\u0633\u0644 \u0627\u0644\u0631\u0645\u0632 \u0641\u064A \u0631\u0623\u0633 Authorization.'
-                : 'VScan supports two authentication methods: JWT tokens (for browser) and API Keys (for programmatic access). Send the token in the Authorization header.'
+                ? '\u064A\u062F\u0639\u0645 Seku \u0637\u0631\u064A\u0642\u062A\u064A\u0646 \u0644\u0644\u0645\u0635\u0627\u062F\u0642\u0629: \u0631\u0645\u0632 JWT (\u0644\u0644\u0645\u062A\u0635\u0641\u062D) \u0648\u0645\u0641\u0627\u062A\u064A\u062D API (\u0644\u0644\u0648\u0635\u0648\u0644 \u0627\u0644\u0628\u0631\u0645\u062C\u064A). \u0623\u0631\u0633\u0644 \u0627\u0644\u0631\u0645\u0632 \u0641\u064A \u0631\u0623\u0633 Authorization.'
+                : 'Seku supports two authentication methods: JWT tokens (for browser) and API Keys (for programmatic access). Send the token in the Authorization header.'
               }}
             </p>
             <div class="bg-slate-900 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto">
@@ -1123,7 +1123,7 @@ function printPage() {
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">cURL</span>
                   <button @click="copyText(curlSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
                 </div>
-                <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">curl -X POST https://your-vscan-domain/api/scans \
+                <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">curl -X POST https://your-seku-domain/api/scans \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"target_ids": [1, 2], "policy": "standard"}'</div>
@@ -1136,7 +1136,7 @@ function printPage() {
                 <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">import requests
 
 resp = requests.post(
-    "https://your-vscan-domain/api/scans",
+    "https://your-seku-domain/api/scans",
     headers={"X-API-Key": "YOUR_API_KEY"},
     json={"target_ids": [1, 2], "policy": "standard"}
 )
@@ -1147,7 +1147,7 @@ print(resp.json())</div>
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">JavaScript (fetch)</span>
                   <button @click="copyText(jsSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
                 </div>
-                <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">const resp = await fetch("https://your-vscan-domain/api/scans", {
+                <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">const resp = await fetch("https://your-seku-domain/api/scans", {
   method: "POST",
   headers: {
     "X-API-Key": "YOUR_API_KEY",
@@ -1195,7 +1195,7 @@ console.log(data);</div>
               </h3>
               <button @click="copyText(ghActionsSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
             </div>
-            <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">name: VScan Security Check
+            <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">name: Seku Security Check
 on:
   push:
     branches: [main]
@@ -1203,9 +1203,9 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger VScan
+      - name: Trigger Seku
         run: |
-          curl -X POST https://your-vscan-domain/api/scans \
+          curl -X POST https://your-seku-domain/api/scans \
             -H "X-API-Key: $&#123;&#123; secrets.VSCAN_API_KEY &#125;&#125;" \
             -H "Content-Type: application/json" \
             -d '{ "target_ids": [1], "policy": "standard" }'</div>
@@ -1219,10 +1219,10 @@ jobs:
               </h3>
               <button @click="copyText(dockerSnippet)" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">{{ lang === 'ar' ? '\u0646\u0633\u062E' : 'Copy' }}</button>
             </div>
-            <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">docker run -d --name vscan -p 8080:8080 \
+            <div class="bg-slate-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto whitespace-pre">docker run -d --name seku -p 8080:8080 \
   -e DATABASE_URL=postgres://user:pass@host/vscan \
   -e JWT_SECRET=your-secret \
-  vscan-mohesr:latest</div>
+  seku:latest</div>
           </div>
         </div>
 

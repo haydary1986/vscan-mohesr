@@ -16,7 +16,7 @@ func main() {
 	// Initialize database
 	config.InitDatabase()
 
-	// Seed universities from MOHESR list
+	// Seed universities
 	config.SeedUniversities()
 
 	// Start scheduler
@@ -24,7 +24,7 @@ func main() {
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
-		AppName: "VScan-MOHESR v1.0",
+		AppName: "Seku v1.0",
 	})
 
 	// Setup routes
@@ -40,6 +40,6 @@ func main() {
 	app.Get("/ws/scan", websocket.New(ws.HandleWebSocket))
 
 	// Start server
-	log.Println("VScan-MOHESR server starting on :8080")
+	log.Println("Seku server starting on :8080")
 	log.Fatal(app.Listen(":8080"))
 }

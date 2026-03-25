@@ -1,6 +1,6 @@
-# Contributing to VScan
+# Contributing to Seku
 
-Thank you for your interest in contributing to VScan! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Seku! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 

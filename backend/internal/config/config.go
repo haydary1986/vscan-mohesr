@@ -53,15 +53,15 @@ func InitDatabase() {
 	DB.Model(&models.Organization{}).Count(&orgCount)
 	if orgCount == 0 {
 		org := models.Organization{
-			Name:       "MOHESR",
-			Slug:       "mohesr",
+			Name:       "Seku",
+			Slug:       "seku",
 			Plan:       "enterprise",
 			MaxTargets: 9999,
 			MaxScans:   9999,
 			IsActive:   true,
 		}
 		DB.Create(&org)
-		log.Println("Default organization created: MOHESR")
+		log.Println("Default organization created: Seku")
 	}
 
 	// Create default admin if no users exist
@@ -78,7 +78,7 @@ func InitDatabase() {
 			Username: "admin",
 			Password: string(hashed),
 			FullName: "System Administrator",
-			Email:    "admin@mohesr.gov.iq",
+			Email:    "admin@seku.dev",
 			Role:     "admin",
 			IsActive: true,
 		}

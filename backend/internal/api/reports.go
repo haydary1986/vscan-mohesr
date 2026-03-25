@@ -38,7 +38,7 @@ func GeneratePDFReport(c *fiber.Ctx) error {
 	name = strings.ReplaceAll(name, "/", "-")
 	safeName := url.PathEscape(name)
 
-	filename := fmt.Sprintf("VScan-Report-%s.pdf", safeName)
+	filename := fmt.Sprintf("Seku-Report-%s.pdf", safeName)
 
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"; filename*=UTF-8''%s", filename, safeName+".pdf"))

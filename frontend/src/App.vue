@@ -81,8 +81,8 @@ function logout() {
             </svg>
           </div>
           <div>
-            <h1 class="text-lg font-bold">VScan</h1>
-            <p class="text-xs text-slate-400">MOHESR Security</p>
+            <h1 class="text-lg font-bold">Seku</h1>
+            <p class="text-xs text-slate-400">Web Security</p>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ function logout() {
           </svg>
           {{ lang === 'ar' ? 'English' : 'العربية' }}
         </button>
-        <p class="text-xs text-slate-600 text-center mt-2">VScan-MOHESR v1.0</p>
+        <p class="text-xs text-slate-600 text-center mt-2">Seku v1.0</p>
       </div>
     </aside>
 

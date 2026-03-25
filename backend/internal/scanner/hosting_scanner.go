@@ -166,7 +166,7 @@ func (s *HostingScanner) checkBrotliCompression(url string) models.CheckResult {
 	}
 
 	req.Header.Set("Accept-Encoding", "br, gzip, deflate")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; VScan/1.0)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Seku/1.0)")
 
 	client := &http.Client{
 		Timeout: 15 * time.Second,

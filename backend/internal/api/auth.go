@@ -18,7 +18,7 @@ var jwtSecret []byte
 func init() {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		secret = "vscan-mohesr-secret-change-in-production"
+		secret = "seku-secret-change-in-production"
 	}
 	jwtSecret = []byte(secret)
 }

@@ -122,7 +122,7 @@ onMounted(async () => {
             Global Security Assessment Standard
           </div>
           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            VScan-MOHESR Scoring Methodology
+            Seku Scoring Methodology
           </h1>
           <p class="mt-4 text-lg sm:text-xl text-indigo-100 max-w-3xl mx-auto leading-relaxed" v-if="methodology">
             {{ methodology.description }}
@@ -375,13 +375,13 @@ onMounted(async () => {
           </svg>
           <h3 class="text-lg font-bold text-gray-900 mb-2">About This Methodology</h3>
           <p class="text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            This scoring methodology is applied uniformly to all websites assessed by VScan-MOHESR.
+            This scoring methodology is applied uniformly to all websites assessed by Seku.
             The framework is designed to provide a transparent, reproducible, and comprehensive evaluation
             of website security posture. All checks are performed automatically using non-intrusive techniques.
             Scores are updated with each scan to reflect the current state of the website's security configuration.
           </p>
           <p class="text-xs text-gray-400 mt-4">
-            VScan-MOHESR Security Assessment Framework v{{ methodology.version }}
+            Seku Security Assessment Framework v{{ methodology.version }}
           </p>
         </div>
       </div>

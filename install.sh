@@ -1,5 +1,5 @@
 #!/bin/bash
-# VScan-MOHESR CLI Installer
+# Seku CLI Installer
 set -e
 
 VERSION="1.0.0"
@@ -15,7 +15,7 @@ case $ARCH in
 esac
 
 echo "╔═══════════════════════════════════════╗"
-echo "║   VScan-MOHESR CLI Installer v${VERSION}  ║"
+echo "║   Seku CLI Installer v${VERSION}          ║"
 echo "╚═══════════════════════════════════════╝"
 echo ""
 echo "Detected: ${OS}/${ARCH}"
@@ -23,7 +23,7 @@ echo ""
 
 # Check if Docker is available for quick install
 if command -v docker &> /dev/null; then
-    echo "Docker detected. You can run VScan with:"
+    echo "Docker detected. You can run Seku with:"
     echo ""
     echo "  docker run --rm ghcr.io/haydary1986/vscan-mohesr example.com"
     echo ""
@@ -63,7 +63,7 @@ else
 fi
 
 echo ""
-echo "VScan installed successfully!"
+echo "Seku installed successfully!"
 echo ""
 echo "Usage:"
 echo "  vscan example.com"

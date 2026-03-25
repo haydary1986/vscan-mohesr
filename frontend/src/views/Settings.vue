@@ -19,7 +19,7 @@ const emailConfig = ref({
   smtp_user: '',
   smtp_pass: '',
   from_email: '',
-  from_name: 'VScan-MOHESR',
+  from_name: 'Seku',
 })
 const emailSaving = ref(false)
 const emailMessage = ref('')
@@ -241,7 +241,7 @@ onMounted(loadSettings)
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">From Name</label>
               <input v-model="emailConfig.from_name" type="text"
-                placeholder="VScan-MOHESR"
+                placeholder="Seku"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
             </div>
           </div>

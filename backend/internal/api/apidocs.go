@@ -8,7 +8,7 @@ import (
 // GET /api/docs (public)
 func GetAPIDocs(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
-		"title":    "VScan-MOHESR API Documentation",
+		"title":    "Seku API Documentation",
 		"version":  "1.0",
 		"base_url": "https://sec.erticaz.com/api",
 		"authentication": fiber.Map{
